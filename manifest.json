@@ -1,0 +1,48 @@
+{
+  "id": "/",
+  "name": "JasaKu Solo - Cari Tukang Mudah, Cepat dan Terpercaya",
+  "short_name": "JasaKu Solo",
+  "description": "Marketplace jasa lokal yang mempertemukan Pencari Jasa dengan Penyedia Jasa di Solo Raya secara mudah, cepat, aman dan terpercaya.",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
+  "orientation": "portrait-primary",
+  "background_color": "#0F5C2A",
+  "theme_color": "#0F5C2A",
+  "lang": "id-ID",
+  "dir": "ltr",
+  "categories": ["business", "utilities", "lifestyle"],
+  "icons": [
+    {
+      "src": "favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

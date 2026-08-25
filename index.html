@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="id-ID">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<title>JasaKu Solo — Cari Tukang Mudah, Cepat dan Terpercaya</title>
+<meta name="description" content="Marketplace jasa lokal Solo Raya. Temukan tukang terverifikasi untuk listrik, pipa, AC, cat, kebersihan, dan lainnya.">
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F5C2A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="JasaKu Solo">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+
+<style>
+  /* ============================================================
+     1. DESIGN TOKENS
+     ============================================================ */
+  :root{
+    --green-900:#0B4A22;
+    --green-800:#0F5C2A;
+    --green-700:#146B33;
+    --green-600:#1B7A3E;
+    --green-500:#228C4A;
+    --lime-400:#9AD94C;
+    --lime-300:#C3EB7E;
+    --white:#FFFFFF;
+    --ink:#0E2313;
+    --mist:#EAF6EE;
+
+    --radius-app:22px;
+    --radius-card:16px;
+    --ease-standard:cubic-bezier(.4,0,.2,1);
+
+    --font-display:'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif;
+    --font-body:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+
+    --safe-top:env(safe-area-inset-top,0px);
+    --safe-bottom:env(safe-area-inset-bottom,0px);
+  }
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    font-family:var(--font-body);
+    color:var(--ink);
+    background:var(--green-800);
+    overscroll-behavior:none;
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{
+    position:relative;
+    min-height:100dvh;
+    min-height:100vh;
+    overflow:hidden;
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+  }
+
+  /* ============================================================
+     2. SPLASH SCREEN
+     ============================================================ */
+  .splash{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:calc(var(--safe-top) + 32px) 28px calc(var(--safe-bottom) + 28px);
+    background:
+      radial-gradient(120% 70% at 50% 0%, var(--green-600) 0%, var(--green-800) 55%, var(--green-900) 100%);
+    text-align:center;
+    overflow:hidden;
+    transition:opacity .6s var(--ease-standard), transform .6s var(--ease-standard);
+  }
+  .splash.leaving{opacity:0; transform:scale(1.03); pointer-events:none;}
+
+  /* mega-mendung cloud motif corners */
+  .cloud-motif{
+    position:absolute;
+    width:220px; height:220px;
+    opacity:.14;
+    fill:none;
+    stroke:var(--white);
+    stroke-width:2.4;
+  }
+  .cloud-motif.tl{top:-30px; left:-40px; transform:scaleX(-1);}
+  .cloud-motif.tr{top:-20px; right:-50px;}
+
+  .splash-body{
+    position:relative;
+    z-index:2;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:18px;
+    animation:rise .7s var(--ease-standard) both;
+  }
+  @keyframes rise{
+    from{opacity:0; transform:translateY(14px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+
+  .logo-ring{
+    width:132px; height:132px;
+    border-radius:31px;
+    padding:6px;
+    background:rgba(255,255,255,.08);
+    box-shadow:0 0 0 1.5px rgba(255,255,255,.35), 0 20px 50px -12px rgba(0,0,0,.45);
+    animation:glow 2.6s ease-in-out infinite;
+  }
+  @keyframes glow{
+    0%,100%{box-shadow:0 0 0 1.5px rgba(255,255,255,.35), 0 20px 50px -12px rgba(0,0,0,.45);}
+    50%{box-shadow:0 0 0 1.5px rgba(255,255,255,.6), 0 0 34px 4px rgba(154,217,76,.35), 0 20px 50px -12px rgba(0,0,0,.45);}
+  }
+  .logo-ring img{width:100%; height:100%; border-radius:24px; display:block;}
+
+  .brand-name{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:44px;
+    line-height:1;
+    color:var(--white);
+    margin:4px 0 0;
+    letter-spacing:-.5px;
+  }
+  .brand-sub{
+    display:flex; align-items:center; gap:10px;
+    color:rgba(255,255,255,.85);
+    font-family:var(--font-display);
+    font-weight:500;
+    font-size:16px;
+    letter-spacing:2px;
+  }
+  .brand-sub::before, .brand-sub::after{
+    content:''; width:22px; height:1px; background:rgba(255,255,255,.5);
+  }
+
+  .tagline{
+    margin-top:6px;
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:22px;
+    line-height:1.35;
+    color:var(--white);
+    max-width:280px;
+  }
+  .tagline .accent{color:var(--lime-400);}
+  .tagline .pill{
+    display:inline-block;
+    background:rgba(255,255,255,.14);
+    padding:1px 10px;
+    border-radius:20px;
+    font-size:.8em;
+    vertical-align:middle;
+  }
+  .tagline u{text-decoration-color:var(--lime-400); text-underline-offset:4px;}
+
+  .loading-row{
+    margin-top:26px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:rgba(255,255,255,.75);
+    font-size:13px;
+  }
+  .dot-spin{
+    width:16px; height:16px;
+    border-radius:50%;
+    border:2px solid rgba(255,255,255,.3);
+    border-top-color:var(--white);
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* landmark silhouettes */
+  .skyline{
+    position:absolute;
+    left:0; right:0; bottom:64px;
+    height:150px;
+    opacity:.85;
+    z-index:1;
+    pointer-events:none;
+  }
+  .skyline svg{width:100%; height:100%;}
+
+  /* motion streaks */
+  .streaks{
+    position:absolute; left:0; right:0; bottom:0; height:110px;
+    z-index:1; pointer-events:none;
+    overflow:hidden;
+  }
+  .streaks svg{width:100%; height:100%;}
+  .streak-line{
+    stroke-dasharray:220 900;
+    stroke-dashoffset:900;
+    animation:streak 2.4s var(--ease-standard) infinite;
+  }
+  .streak-line.s2{animation-delay:.3s;}
+  .streak-line.s3{animation-delay:.6s;}
+  @keyframes streak{
+    to{stroke-dashoffset:-220;}
+  }
+
+  .powered-by{
+    position:relative; z-index:2;
+    margin-top:auto;
+    padding-top:22px;
+    font-size:12px;
+    color:rgba(255,255,255,.6);
+    letter-spacing:.3px;
+  }
+  .powered-by b{color:rgba(255,255,255,.85); font-weight:600;}
+
+  /* ============================================================
+     3. NEXT-STAGE PLACEHOLDER (temporary — akan diganti Login di tahap berikutnya)
+     ============================================================ */
+  .stage-screen{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    background:var(--mist);
+    opacity:0;
+    transform:translateY(10px);
+    pointer-events:none;
+    transition:opacity .5s var(--ease-standard), transform .5s var(--ease-standard);
+  }
+  .stage-screen.active{opacity:1; transform:translateY(0); pointer-events:auto;}
+
+  .stage-hero{
+    background:linear-gradient(160deg, var(--green-700), var(--green-900));
+    padding:calc(var(--safe-top) + 26px) 24px 34px;
+    color:var(--white);
+    border-radius:0 0 28px 28px;
+  }
+  .stage-hero .logo-sm{
+    width:52px; height:52px; border-radius:14px; display:block; margin-bottom:14px;
+    box-shadow:0 0 0 1px rgba(255,255,255,.3);
+  }
+  .stage-hero h1{font-family:var(--font-display); font-size:24px; margin:0 0 6px; font-weight:700;}
+  .stage-hero p{margin:0; font-size:14px; color:rgba(255,255,255,.8); line-height:1.5;}
+
+  .stage-body{
+    flex:1;
+    padding:24px 22px calc(var(--safe-bottom) + 24px);
+    display:flex; flex-direction:column; gap:14px;
+  }
+  .roadmap-card{
+    background:var(--white);
+    border-radius:var(--radius-card);
+    padding:16px 18px;
+    box-shadow:0 1px 3px rgba(15,92,42,.08);
+    border:1px solid rgba(15,92,42,.08);
+  }
+  .roadmap-card h2{
+    font-family:var(--font-display);
+    font-size:14px; font-weight:700;
+    color:var(--green-800);
+    margin:0 0 10px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .roadmap-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px;}
+  .roadmap-list li{
+    display:flex; align-items:center; gap:10px;
+    font-size:13.5px; color:var(--ink);
+  }
+  .step-badge{
+    width:22px; height:22px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:700; flex:none;
+  }
+  .step-badge.done{background:var(--green-600); color:var(--white);}
+  .step-badge.now{background:var(--lime-400); color:var(--green-900); box-shadow:0 0 0 4px rgba(154,217,76,.25);}
+  .step-badge.next{background:var(--mist); color:var(--green-700); border:1.5px dashed var(--green-500);}
+  .roadmap-list li.dim{color:#7c8b80;}
+
+  .status-note{
+    font-size:12.5px;
+    color:#5b6b60;
+    background:#F2FAF4;
+    border:1px solid #DCEFE1;
+    border-radius:12px;
+    padding:12px 14px;
+    line-height:1.55;
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ============================================================
+       SPLASH SCREEN
+       ============================================================ -->
+  <section class="splash" id="splash">
+
+    <svg class="cloud-motif tl" viewBox="0 0 200 200"><path d="M10 120 Q40 90 70 110 Q90 80 120 100 Q150 80 180 110 Q160 140 130 130 Q110 155 80 135 Q50 150 30 130 Q0 145 10 120Z"/></svg>
+    <svg class="cloud-motif tr" viewBox="0 0 200 200"><path d="M10 120 Q40 90 70 110 Q90 80 120 100 Q150 80 180 110 Q160 140 130 130 Q110 155 80 135 Q50 150 30 130 Q0 145 10 120Z"/></svg>
+
+    <div class="skyline" aria-hidden="true">
+      <svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMax slice">
+        <!-- Tugu-like monument, left -->
+        <g fill="#ffffff" opacity="0.5">
+          <rect x="55" y="30" width="10" height="90"/>
+          <polygon points="60,10 68,30 52,30"/>
+          <rect x="40" y="118" width="40" height="8" rx="1"/>
+        </g>
+        <!-- Gapura / gate arch, right -->
+        <g fill="#ffffff" opacity="0.5">
+          <rect x="300" y="55" width="10" height="65"/>
+          <rect x="368" y="55" width="10" height="65"/>
+          <path d="M296 58 Q339 15 382 58 L372 58 Q339 30 306 58 Z"/>
+          <rect x="292" y="118" width="96" height="7" rx="1"/>
+        </g>
+        <!-- soft ground line -->
+        <rect x="0" y="126" width="400" height="1.5" fill="#ffffff" opacity="0.25"/>
+      </svg>
+    </div>
+
+    <div class="streaks" aria-hidden="true">
+      <svg viewBox="0 0 400 110" preserveAspectRatio="none">
+        <path class="streak-line s1" d="M-50 90 Q120 60 420 80" stroke="#C3EB7E" stroke-width="2.5" fill="none" opacity=".55"/>
+        <path class="streak-line s2" d="M-50 70 Q140 100 420 60" stroke="#ffffff" stroke-width="1.5" fill="none" opacity=".4"/>
+        <path class="streak-line s3" d="M-50 100 Q160 75 420 95" stroke="#9AD94C" stroke-width="2" fill="none" opacity=".45"/>
+      </svg>
+    </div>
+
+    <div class="splash-body">
+      <div class="logo-ring">
+        <img src="icon-512.png" alt="Logo JasaKu Solo" width="512" height="512">
+      </div>
+      <div>
+        <div class="brand-name">JasaKu</div>
+        <div class="brand-sub">SOLO</div>
+      </div>
+      <p class="tagline">Cari <span class="accent">Tukang</span> Mudah, Cepat <span class="pill">dan</span> <u>Terpercaya</u></p>
+      <div class="loading-row"><span class="dot-spin"></span><span id="splashStatus">Menyiapkan aplikasi…</span></div>
+    </div>
+
+    <div class="powered-by">powered by <b>IdeA1</b></div>
+  </section>
+
+  <!-- ============================================================
+       STAGE PLACEHOLDER — akan digantikan halaman Login di tahap berikutnya
+       ============================================================ -->
+  <section class="stage-screen" id="stageNext">
+    <div class="stage-hero">
+      <img class="logo-sm" src="icon-192.png" alt="JasaKu Solo">
+      <h1>Fondasi PWA siap ✓</h1>
+      <p>Splash screen, manifest, service worker, dan router dasar sudah aktif. Layar ini sementara — akan diganti halaman Login di tahap berikutnya.</p>
+    </div>
+    <div class="stage-body">
+      <div class="roadmap-card">
+        <h2>📋 Progres Tahap 23 — Full index.html v1.0</h2>
+        <ul class="roadmap-list">
+          <li><span class="step-badge done">✓</span> Fondasi PWA (manifest, service worker, splash)</li>
+          <li><span class="step-badge now">●</span> Auth: Register / Login / Role Selection</li>
+          <li class="dim"><span class="step-badge next">○</span> Seeker Dashboard</li>
+          <li class="dim"><span class="step-badge next">○</span> Provider Dashboard</li>
+          <li class="dim"><span class="step-badge next">○</span> Order System</li>
+          <li class="dim"><span class="step-badge next">○</span> Verification (Camera + GPS)</li>
+          <li class="dim"><span class="step-badge next">○</span> Payment, Dispute, Admin, Realtime</li>
+        </ul>
+      </div>
+      <p class="status-note">
+        File ini (<code>index.html</code>) akan terus ditambah bagian demi bagian di tahap-tahap berikutnya — bukan ditulis ulang dari nol. Upload versi ini dulu ke GitHub → Vercel, install ke HP, lalu konfirmasi hasilnya sebelum kita lanjut ke Auth.
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   APP STATE  (fondasi — akan diperluas di tahap Auth)
+   ============================================================ */
+const AppState = {
+  version: '1.0.0-foundation',
+  session: null,   // diisi Supabase Auth di tahap berikutnya
+  role: null,      // 'seeker' | 'provider' | 'admin'
+};
+
+/* ============================================================
+   ROLE GUARD (stub)
+   Prinsip: frontend BUKAN sumber kebenaran otorisasi.
+   Guard ini hanya untuk UX routing, bukan keamanan.
+   Keamanan sesungguhnya ditegakkan oleh RLS + Edge Function di backend.
+   ============================================================ */
+function roleGuard(requiredRole) {
+  // TODO(tahap Auth): cek AppState.session & AppState.role dari Supabase
+  return true;
+}
+
+/* ============================================================
+   ROUTER (skeleton hash-based, diperluas tiap tahap)
+   ============================================================ */
+const Router = {
+  routes: {
+    '/splash': showSplash,
+    '/next': showNext,
+  },
+  start() {
+    window.addEventListener('hashchange', () => this.resolve());
+    this.resolve();
+  },
+  resolve() {
+    const path = location.hash.replace('#', '') || '/splash';
+    const handler = this.routes[path] || showSplash;
+    handler();
+  },
+  go(path) {
+    location.hash = path;
+  }
+};
+
+function showSplash() {
+  document.getElementById('splash').classList.remove('leaving');
+  document.getElementById('stageNext').classList.remove('active');
+}
+function showNext() {
+  const splash = document.getElementById('splash');
+  splash.classList.add('leaving');
+  setTimeout(() => document.getElementById('stageNext').classList.add('active'), 350);
+}
+
+/* ============================================================
+   SPLASH SEQUENCE
+   ============================================================ */
+function runSplashSequence() {
+  const statusEl = document.getElementById('splashStatus');
+  const messages = ['Menyiapkan aplikasi…', 'Memuat data lokal…', 'Hampir siap…'];
+  let i = 0;
+  const interval = setInterval(() => {
+    i++;
+    if (i < messages.length) statusEl.textContent = messages[i];
+  }, 650);
+
+  setTimeout(() => {
+    clearInterval(interval);
+    Router.go('/next');
+  }, 2200);
+}
+
+/* ============================================================
+   PWA: SERVICE WORKER REGISTRATION
+   ============================================================ */
+function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch((err) => {
+        console.warn('SW registration failed:', err);
+      });
+    });
+  }
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+(function init() {
+  registerServiceWorker();
+  Router.start();
+  runSplashSequence();
+})();
+</script>
+
+</body>
+</html>
