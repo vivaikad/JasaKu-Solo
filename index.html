@@ -753,6 +753,110 @@
   .complete-profile-banner .cpb-ico{font-size:26px; flex:none;}
   .complete-profile-banner h5{font-size:13px; margin:0 0 2px; color:var(--ink);}
   .complete-profile-banner p{font-size:11.5px; color:#8a7a4a; margin:0 0 8px; line-height:1.4;}
+
+  /* ============================================================
+     8. ORDER SYSTEM: modal, browse list, status pills, services
+     ============================================================ */
+  .back-row{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+  .back-btn{
+    background:var(--white); border:1px solid #E1EFE4; border-radius:10px;
+    width:34px; height:34px; display:flex; align-items:center; justify-content:center;
+    font-size:16px; flex:none;
+  }
+  .back-row h3{font-family:var(--font-display); font-size:15px; font-weight:700; color:var(--ink); margin:0;}
+
+  .mini-loading{
+    display:flex; align-items:center; gap:10px; justify-content:center;
+    padding:34px 0; color:#8a9a8e; font-size:13px;
+  }
+
+  .provider-card{
+    background:var(--white); border-radius:14px; padding:14px;
+    display:flex; align-items:center; gap:12px; margin-bottom:10px;
+    box-shadow:0 1px 3px rgba(15,92,42,.06);
+  }
+  .provider-card .pc-av{
+    width:46px; height:46px; border-radius:50%; background:var(--green-600); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:17px; flex:none;
+  }
+  .provider-card .pc-body{flex:1; min-width:0;}
+  .provider-card .pc-title{font-size:13.5px; font-weight:700; color:var(--ink);}
+  .provider-card .pc-sub{font-size:11.5px; color:#8a9a8e; margin-top:2px;}
+  .provider-card .pc-price{font-size:13px; font-weight:700; color:var(--green-600); margin-top:4px;}
+  .btn-mini-outline{
+    flex:none; background:var(--white); border:1.5px solid var(--green-600); color:var(--green-600);
+    font-size:12px; font-weight:700; padding:8px 14px; border-radius:10px;
+  }
+
+  .status-pill{font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px; display:inline-block;}
+  .status-pill.pending{background:#FFF1DB; color:#B5760F;}
+  .status-pill.accepted, .status-pill.in_progress{background:#E3EEFC; color:#2B5FA8;}
+  .status-pill.completed{background:#E3F6E9; color:#1F7A3E;}
+  .status-pill.cancelled{background:#FDE8E8; color:#B23434;}
+
+  .order-list-item{
+    background:var(--white); border-radius:14px; padding:14px; margin-bottom:10px;
+    box-shadow:0 1px 3px rgba(15,92,42,.06);
+  }
+  .order-list-item .oli-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;}
+  .order-list-item .oli-title{font-size:13.5px; font-weight:700; color:var(--ink);}
+  .order-list-item .oli-sub{font-size:11.5px; color:#8a9a8e; margin-bottom:10px;}
+  .order-list-item .oli-price{font-size:13px; font-weight:700; color:var(--green-600);}
+  .oli-actions{display:flex; gap:8px; margin-top:10px;}
+  .btn-oli{
+    flex:1; border:none; border-radius:10px; padding:9px; font-size:12px; font-weight:700;
+  }
+  .btn-oli.primary{background:var(--green-600); color:#fff;}
+  .btn-oli.outline{background:#fff; border:1.5px solid #E1EFE4; color:#4a5a4d;}
+  .btn-oli.danger{background:#fff; border:1.5px solid #F5C6C6; color:#D64545;}
+
+  .svc-item{
+    background:var(--white); border-radius:14px; padding:14px; margin-bottom:10px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    box-shadow:0 1px 3px rgba(15,92,42,.06);
+  }
+  .svc-item .svc-title{font-size:13.5px; font-weight:700; color:var(--ink);}
+  .svc-item .svc-sub{font-size:11.5px; color:#8a9a8e; margin-top:2px;}
+  .svc-item .svc-price{font-size:12.5px; font-weight:700; color:var(--green-600); margin-top:3px;}
+  .btn-icon-danger{
+    flex:none; background:#FDF1F1; border:1px solid #F5C6C6; color:#D64545;
+    width:32px; height:32px; border-radius:9px; font-size:14px;
+  }
+
+  .fab-add-service{
+    width:100%; background:var(--green-600); color:#fff; border:none;
+    border-radius:12px; padding:13px; font-weight:700; font-size:13.5px; margin-bottom:16px;
+  }
+
+  /* Modal sheet */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(10,30,16,.5);
+    z-index:70; display:flex; align-items:flex-end; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity .25s var(--ease-standard);
+  }
+  .modal-overlay.show{opacity:1; pointer-events:auto;}
+  .modal-sheet{
+    width:100%; max-width:520px; background:var(--white);
+    border-radius:20px 20px 0 0; padding:20px 20px calc(var(--safe-bottom) + 20px);
+    max-height:85vh; overflow-y:auto;
+    transform:translateY(24px); transition:transform .25s var(--ease-standard);
+  }
+  .modal-overlay.show .modal-sheet{transform:translateY(0);}
+  .modal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
+  .modal-head h3{font-family:var(--font-display); font-size:16px; margin:0; color:var(--ink);}
+  .modal-close-btn{background:var(--mist); border:none; width:30px; height:30px; border-radius:50%; font-size:14px;}
+  .modal-summary{
+    background:var(--mist); border-radius:12px; padding:12px 14px; margin-bottom:16px; font-size:13px; color:#3f4f43;
+  }
+  .modal-summary b{color:var(--ink);}
+  select.select-field{
+    flex:1; border:none; background:transparent; outline:none; padding:13px 10px;
+    font-size:15px; color:var(--ink); font-family:var(--font-body); appearance:none;
+  }
+  textarea.textarea-field{
+    width:100%; border:none; background:transparent; outline:none; resize:vertical;
+    padding:13px 10px; font-size:14px; font-family:var(--font-body); color:var(--ink); min-height:70px;
+  }
 </style>
 </head>
 <body>
@@ -979,6 +1083,10 @@
 
   <div class="toast" id="toast"></div>
 
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-sheet" id="modalSheet"><!-- diisi JS --></div>
+  </div>
+
   <section class="stage-screen seeker-shell" id="dashProvider">
     <div class="prov-topbar">
       <div class="seeker-topbar-row">
@@ -1034,7 +1142,7 @@
           <li><span class="step-badge done">✓</span> Auth: Register / Login / Role Selection</li>
           <li><span class="step-badge done">✓</span> Seeker Dashboard</li>
           <li><span class="step-badge done">✓</span> Provider Dashboard</li>
-          <li class="dim"><span class="step-badge next">○</span> Order System</li>
+          <li><span class="step-badge done">✓</span> Order System</li>
           <li><span class="step-badge now">●</span> Admin Command Center</li>
           <li class="dim"><span class="step-badge next">○</span> Payment, Dispute, Realtime</li>
         </ul>
@@ -1163,6 +1271,14 @@ const SEEKER_CATEGORIES = [
   { icon: '⋯', label: 'Lainnya' },
 ];
 
+const ORDER_STATUS_LABEL = {
+  pending: 'Menunggu Konfirmasi',
+  accepted: 'Diterima',
+  in_progress: 'Sedang Dikerjakan',
+  completed: 'Selesai',
+  cancelled: 'Dibatalkan',
+};
+
 function showToast(message) {
   const el = document.getElementById('toast');
   el.textContent = message;
@@ -1171,70 +1287,170 @@ function showToast(message) {
   showToast._t = setTimeout(() => el.classList.remove('show'), 2400);
 }
 
+function formatRupiah(n) {
+  if (n === null || n === undefined || isNaN(n)) return 'Rp0';
+  return 'Rp' + Number(n).toLocaleString('id-ID');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+function openModal(html) {
+  document.getElementById('modalSheet').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+document.getElementById('modalOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'modalOverlay') closeModal();
+});
+
+/* Ambil banyak profil sekaligus (dipakai buat nampilin nama seeker/provider di list) */
+async function fetchProfilesByIds(ids) {
+  const uniqueIds = [...new Set(ids)].filter(Boolean);
+  if (uniqueIds.length === 0) return {};
+  const { data, error } = await sb.from('profiles').select('id, full_name, phone').in('id', uniqueIds);
+  if (error) return {};
+  const map = {};
+  data.forEach((p) => { map[p.id] = p; });
+  return map;
+}
+
 function switchSeekerTab(tab) {
   document.querySelectorAll('#dashSeeker .nav-item').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.seekerTab === tab);
   });
 
   if (tab === 'pesanjasa') {
-    showToast('Pesan jasa baru dibangun di tahap Order System 🚧');
+    showToast('Tap salah satu kategori di Dashboard untuk mulai cari tukang 🔍');
     switchSeekerTab('home');
     return;
   }
 
   const content = document.getElementById('seekerContent');
-  if (tab === 'home') content.innerHTML = renderSeekerHome();
-  else if (tab === 'pesanan') content.innerHTML = renderSeekerPesanan();
+  content.scrollTop = 0;
+
+  if (tab === 'home') loadSeekerHome(content);
+  else if (tab === 'pesanan') loadSeekerPesanan(content);
   else if (tab === 'chat') content.innerHTML = renderSeekerChat();
   else if (tab === 'akun') content.innerHTML = renderSeekerAkun();
-
-  content.scrollTop = 0;
 }
 
-function renderSeekerHome() {
+async function loadSeekerHome(content) {
   const catHtml = SEEKER_CATEGORIES.map((c) =>
-    `<button class="cat-item" data-toast="Kategori ${c.label} — cari tukang dibangun di tahap Order System">
+    `<button class="cat-item" data-browse-category="${escapeHtml(c.label)}">
        <div class="cat-icon">${c.icon}</div>
        <div class="cat-label">${c.label}</div>
      </button>`
   ).join('');
 
-  return `
+  content.innerHTML = `
     <div class="section-head"><h3>Kategori Populer</h3></div>
     <div class="cat-grid">${catHtml}</div>
-
     <div class="section-head"><h3>Status Pesanan Anda</h3></div>
-    <div class="stat-grid">
-      <div class="stat-item"><div class="n">0</div><div class="l">Menunggu<br>Konfirmasi</div></div>
-      <div class="stat-item"><div class="n">0</div><div class="l">Sedang<br>Dikerjakan</div></div>
-      <div class="stat-item"><div class="n">0</div><div class="l">Selesai</div></div>
-      <div class="stat-item"><div class="n">0</div><div class="l">Dibatalkan</div></div>
+    <div class="stat-grid" id="seekerStatGrid">
+      <div class="mini-loading"><span class="dot-spin"></span>Memuat…</div>
     </div>
-
     <div class="promo-banner">
       <h4>Cari Tukang <span>Mudah,</span><br>Cepat dan Terpercaya</h4>
       <p>Semua kebutuhan rumah ada di JasaKu!</p>
     </div>
-
     <div class="section-head"><h3>Pesanan Terakhir</h3></div>
-    <div class="empty-state">
-      <div class="ico">🧰</div>
-      <h4>Belum ada pesanan</h4>
-      <p>Yuk cari tukang pertama kamu di JasaKu Solo.</p>
-      <button class="btn-mini" data-toast="Cari &amp; pesan tukang dibangun di tahap Order System">Cari Jasa</button>
-    </div>
+    <div id="seekerRecentOrders"><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div></div>
   `;
+
+  const userId = AppState.session?.user?.id;
+  const { data: orders, error } = await sb
+    .from('orders')
+    .select('id, category, status, price, created_at, provider_id')
+    .eq('seeker_id', userId)
+    .order('created_at', { ascending: false });
+
+  const statGrid = document.getElementById('seekerStatGrid');
+  const recentEl = document.getElementById('seekerRecentOrders');
+
+  if (error || !orders) {
+    statGrid.innerHTML = `<div class="mini-loading">Gagal memuat data</div>`;
+    recentEl.innerHTML = `<div class="empty-state"><div class="ico">⚠️</div><h4>Gagal memuat pesanan</h4></div>`;
+    return;
+  }
+
+  const count = (s) => orders.filter((o) => o.status === s).length;
+  statGrid.innerHTML = `
+    <div class="stat-item"><div class="n">${count('pending')}</div><div class="l">Menunggu<br>Konfirmasi</div></div>
+    <div class="stat-item"><div class="n">${count('accepted') + count('in_progress')}</div><div class="l">Sedang<br>Dikerjakan</div></div>
+    <div class="stat-item"><div class="n">${count('completed')}</div><div class="l">Selesai</div></div>
+    <div class="stat-item"><div class="n">${count('cancelled')}</div><div class="l">Dibatalkan</div></div>
+  `;
+
+  if (orders.length === 0) {
+    recentEl.innerHTML = `
+      <div class="empty-state">
+        <div class="ico">🧰</div>
+        <h4>Belum ada pesanan</h4>
+        <p>Yuk cari tukang pertama kamu di JasaKu Solo.</p>
+      </div>`;
+    return;
+  }
+
+  const providerMap = await fetchProfilesByIds(orders.map((o) => o.provider_id));
+  const recent = orders.slice(0, 3).map((o) => {
+    const provName = providerMap[o.provider_id]?.full_name || 'Tukang';
+    return `
+      <div class="order-list-item">
+        <div class="oli-top">
+          <span class="oli-title">${escapeHtml(o.category)}</span>
+          <span class="status-pill ${o.status}">${ORDER_STATUS_LABEL[o.status]}</span>
+        </div>
+        <div class="oli-sub">oleh ${escapeHtml(provName)} · ${new Date(o.created_at).toLocaleDateString('id-ID')}</div>
+        <div class="oli-price">${formatRupiah(o.price)}</div>
+      </div>`;
+  }).join('');
+  recentEl.innerHTML = recent;
 }
 
-function renderSeekerPesanan() {
-  return `
-    <div class="section-head"><h3>Pesanan Saya</h3></div>
-    <div class="empty-state">
-      <div class="ico">📋</div>
-      <h4>Belum ada pesanan</h4>
-      <p>Riwayat pesanan kamu akan muncul di sini setelah fitur Order System dibangun.</p>
-    </div>
-  `;
+async function loadSeekerPesanan(content) {
+  content.innerHTML = `<div class="section-head"><h3>Pesanan Saya</h3></div><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div>`;
+
+  const userId = AppState.session?.user?.id;
+  const { data: orders, error } = await sb
+    .from('orders')
+    .select('id, category, status, price, note, created_at, provider_id')
+    .eq('seeker_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error || !orders) {
+    content.innerHTML = `<div class="section-head"><h3>Pesanan Saya</h3></div><div class="empty-state"><div class="ico">⚠️</div><h4>Gagal memuat pesanan</h4></div>`;
+    return;
+  }
+  if (orders.length === 0) {
+    content.innerHTML = `
+      <div class="section-head"><h3>Pesanan Saya</h3></div>
+      <div class="empty-state">
+        <div class="ico">📋</div>
+        <h4>Belum ada pesanan</h4>
+        <p>Cari tukang lewat kategori di tab Dashboard untuk mulai pesan.</p>
+      </div>`;
+    return;
+  }
+
+  const providerMap = await fetchProfilesByIds(orders.map((o) => o.provider_id));
+  const list = orders.map((o) => {
+    const provName = providerMap[o.provider_id]?.full_name || 'Tukang';
+    const cancelBtn = o.status === 'pending'
+      ? `<div class="oli-actions"><button class="btn-oli danger" data-cancel-order="${o.id}">Batalkan Pesanan</button></div>`
+      : '';
+    return `
+      <div class="order-list-item">
+        <div class="oli-top">
+          <span class="oli-title">${escapeHtml(o.category)}</span>
+          <span class="status-pill ${o.status}">${ORDER_STATUS_LABEL[o.status]}</span>
+        </div>
+        <div class="oli-sub">Tukang: ${escapeHtml(provName)} · ${new Date(o.created_at).toLocaleDateString('id-ID')}${o.note ? ' · "' + escapeHtml(o.note) + '"' : ''}</div>
+        <div class="oli-price">${formatRupiah(o.price)}</div>
+        ${cancelBtn}
+      </div>`;
+  }).join('');
+
+  content.innerHTML = `<div class="section-head"><h3>Pesanan Saya</h3></div>${list}`;
 }
 
 function renderSeekerChat() {
@@ -1243,7 +1459,7 @@ function renderSeekerChat() {
     <div class="empty-state">
       <div class="ico">💬</div>
       <h4>Belum ada percakapan</h4>
-      <p>Chat dengan tukang akan tersedia setelah fitur Order System &amp; Realtime dibangun.</p>
+      <p>Chat dengan tukang akan tersedia setelah fitur Realtime dibangun.</p>
     </div>
   `;
 }
@@ -1269,6 +1485,122 @@ function renderSeekerAkun() {
   `;
 }
 
+/* ============================================================
+   BROWSE TUKANG (per kategori) — nyambung ke tabel services
+   ============================================================ */
+async function openBrowseCategory(category) {
+  const content = document.getElementById('seekerContent');
+  content.scrollTop = 0;
+  content.innerHTML = `
+    <div class="back-row">
+      <button class="back-btn" data-back-to-seeker-home>←</button>
+      <h3>${escapeHtml(category)}</h3>
+    </div>
+    <div class="mini-loading"><span class="dot-spin"></span>Mencari tukang…</div>
+  `;
+
+  const { data: services, error } = await sb
+    .from('services')
+    .select('id, provider_id, category, title, description, price')
+    .eq('category', category)
+    .order('created_at', { ascending: false });
+
+  const listArea = content;
+  const backRow = `<div class="back-row"><button class="back-btn" data-back-to-seeker-home>←</button><h3>${escapeHtml(category)}</h3></div>`;
+
+  if (error) {
+    listArea.innerHTML = backRow + `<div class="empty-state"><div class="ico">⚠️</div><h4>Gagal memuat data</h4></div>`;
+    return;
+  }
+  if (services.length === 0) {
+    listArea.innerHTML = backRow + `
+      <div class="empty-state">
+        <div class="ico">🔍</div>
+        <h4>Belum ada tukang di kategori ini</h4>
+        <p>Coba cek lagi nanti, atau pilih kategori lain.</p>
+      </div>`;
+    return;
+  }
+
+  const providerMap = await fetchProfilesByIds(services.map((s) => s.provider_id));
+  const cards = services.map((s) => {
+    const prov = providerMap[s.provider_id];
+    const provName = prov?.full_name || 'Tukang';
+    const initial = provName.trim().charAt(0).toUpperCase() || '?';
+    return `
+      <div class="provider-card">
+        <div class="pc-av">${initial}</div>
+        <div class="pc-body">
+          <div class="pc-title">${escapeHtml(s.title)}</div>
+          <div class="pc-sub">oleh ${escapeHtml(provName)}${s.description ? ' · ' + escapeHtml(s.description) : ''}</div>
+          <div class="pc-price">${formatRupiah(s.price)}</div>
+        </div>
+        <button class="btn-mini-outline" data-order-service='${JSON.stringify({ id: s.id, provider_id: s.provider_id, category: s.category, title: s.title, price: s.price }).replace(/'/g, "&#39;")}'>Pesan</button>
+      </div>`;
+  }).join('');
+
+  listArea.innerHTML = backRow + cards;
+}
+
+function openOrderModal(service) {
+  openModal(`
+    <div class="modal-head">
+      <h3>Pesan Tukang</h3>
+      <button class="modal-close-btn" id="modalCloseBtn">✕</button>
+    </div>
+    <div class="modal-summary">
+      <b>${escapeHtml(service.title)}</b><br>
+      Kategori: ${escapeHtml(service.category)}<br>
+      Perkiraan biaya: ${formatRupiah(service.price)}
+    </div>
+    <div class="field">
+      <label>Catatan untuk Tukang (opsional)</label>
+      <div class="input-wrap" style="align-items:flex-start;">
+        <textarea class="textarea-field" id="orderNote" placeholder="Contoh: alamat lengkap, jadwal yang diinginkan, detail kerusakan..."></textarea>
+      </div>
+    </div>
+    <button class="btn-primary" id="submitOrderBtn"><span class="btn-label">Kirim Pesanan</span></button>
+  `);
+
+  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+  document.getElementById('submitOrderBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('submitOrderBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span><span>Mengirim…</span>';
+
+    const note = document.getElementById('orderNote').value.trim();
+    const seekerId = AppState.session?.user?.id;
+
+    const { error } = await sb.from('orders').insert({
+      seeker_id: seekerId,
+      provider_id: service.provider_id,
+      service_id: service.id,
+      category: service.category,
+      note: note || null,
+      price: service.price,
+      status: 'pending',
+    });
+
+    if (error) {
+      showToast('Gagal mengirim pesanan. Coba lagi.');
+      btn.disabled = false;
+      btn.innerHTML = '<span class="btn-label">Kirim Pesanan</span>';
+      return;
+    }
+
+    closeModal();
+    showToast('Pesanan terkirim! Menunggu konfirmasi tukang ✓');
+    switchSeekerTab('pesanan');
+  });
+}
+
+async function cancelSeekerOrder(orderId) {
+  const { error } = await sb.from('orders').update({ status: 'cancelled', updated_at: new Date().toISOString() }).eq('id', orderId);
+  if (error) { showToast('Gagal membatalkan pesanan.'); return; }
+  showToast('Pesanan dibatalkan.');
+  loadSeekerPesanan(document.getElementById('seekerContent'));
+}
+
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, (m) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -1278,6 +1610,18 @@ function escapeHtml(str) {
 document.getElementById('dashSeeker').addEventListener('click', (e) => {
   const tabBtn = e.target.closest('[data-seeker-tab]');
   if (tabBtn) { switchSeekerTab(tabBtn.dataset.seekerTab); return; }
+
+  const catBtn = e.target.closest('[data-browse-category]');
+  if (catBtn) { openBrowseCategory(catBtn.dataset.browseCategory); return; }
+
+  const backBtn = e.target.closest('[data-back-to-seeker-home]');
+  if (backBtn) { switchSeekerTab('home'); return; }
+
+  const orderBtn = e.target.closest('[data-order-service]');
+  if (orderBtn) { openOrderModal(JSON.parse(orderBtn.dataset.orderService)); return; }
+
+  const cancelBtn = e.target.closest('[data-cancel-order]');
+  if (cancelBtn) { cancelSeekerOrder(cancelBtn.dataset.cancelOrder); return; }
 
   const toastBtn = e.target.closest('[data-toast]');
   if (toastBtn) { showToast(toastBtn.dataset.toast); }
@@ -1291,56 +1635,33 @@ function switchProviderTab(tab) {
     btn.classList.toggle('active', btn.dataset.providerTab === tab);
   });
 
-  if (tab === 'ambilorder') {
-    showToast('Order masuk otomatis setelah tahap Order System dibangun 🚧');
-    switchProviderTab('home');
-    return;
-  }
+  if (tab === 'ambilorder') { switchProviderTab('pesanan'); return; }
 
   const content = document.getElementById('providerContent');
-  if (tab === 'home') content.innerHTML = renderProviderHome();
-  else if (tab === 'pesanan') content.innerHTML = renderProviderPesanan();
+  content.scrollTop = 0;
+  if (tab === 'home') loadProviderHome(content);
+  else if (tab === 'pesanan') loadProviderPesanan(content);
   else if (tab === 'chat') content.innerHTML = renderProviderChat();
   else if (tab === 'profil') content.innerHTML = renderProviderProfil();
-
-  content.scrollTop = 0;
 }
 
-function renderProviderHome() {
-  return `
+async function loadProviderHome(content) {
+  content.innerHTML = `
     <div class="section-head"><h3>Ringkasan Hari Ini</h3></div>
-    <div class="stat-grid-5">
-      <div class="stat-item"><div class="n">0</div><div class="l">Pesanan<br>Baru</div></div>
-      <div class="stat-item"><div class="n">0</div><div class="l">Pesanan<br>Aktif</div></div>
-      <div class="stat-item"><div class="n">0</div><div class="l">Selesai<br>Hari Ini</div></div>
-      <div class="stat-item"><div class="n">–</div><div class="l">Rating<br>Saya</div></div>
-      <div class="stat-item"><div class="n">Rp0</div><div class="l">Pendapatan<br>Hari Ini</div></div>
-    </div>
-
+    <div class="stat-grid-5" id="providerStatGrid"><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div></div>
     <div class="section-head"><h3>Pesanan Terbaru</h3></div>
-    <div class="empty-state">
-      <div class="ico">📥</div>
-      <h4>Belum ada pesanan masuk</h4>
-      <p>Pesanan dari Pencari Jasa akan muncul di sini setelah tahap Order System dibangun.</p>
-    </div>
-
+    <div id="providerRecentOrders"><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div></div>
     <div class="section-head"><h3>Aksi Cepat</h3></div>
     <div class="quick-grid" style="margin-bottom:22px;">
       <button class="quick-item" data-provider-tab="pesanan"><div class="qi">📋</div><div class="ql">Pesanan</div></button>
-      <button class="quick-item" data-toast="Fitur jadwal dibangun di tahap berikutnya"><div class="qi">📅</div><div class="ql">Jadwal</div></button>
-      <button class="quick-item" data-toast="Pendapatan tersimpan setelah Order &amp; Payment dibangun"><div class="qi">💰</div><div class="ql">Pendapatan</div></button>
+      <button class="quick-item" data-open-my-services><div class="qi">🧰</div><div class="ql">Layanan Saya</div></button>
+      <button class="quick-item" data-toast="Pendapatan dihitung otomatis dari pesanan selesai"><div class="qi">💰</div><div class="ql">Pendapatan</div></button>
       <button class="quick-item" data-provider-tab="profil"><div class="qi">👤</div><div class="ql">Profil Saya</div></button>
     </div>
-
-    <div class="earnings-card">
+    <div class="earnings-card" id="providerEarningsCard">
       <div class="eh"><h4>Ringkasan Pendapatan</h4></div>
-      <div class="earnings-row">
-        <div><div class="ev">Rp0</div><div class="el">Total Pendapatan</div></div>
-        <div><div class="ev">0</div><div class="el">Selesai</div></div>
-        <div><div class="ev">–</div><div class="el">Rata-rata Rating</div></div>
-      </div>
+      <div class="mini-loading" style="color:rgba(255,255,255,.7);"><span class="dot-spin"></span>Memuat…</div>
     </div>
-
     <div class="complete-profile-banner">
       <div class="cpb-ico">🛠️</div>
       <div>
@@ -1349,17 +1670,136 @@ function renderProviderHome() {
       </div>
     </div>
   `;
-}
 
-function renderProviderPesanan() {
-  return `
-    <div class="section-head"><h3>Pesanan Saya</h3></div>
-    <div class="empty-state">
-      <div class="ico">📋</div>
-      <h4>Belum ada pesanan</h4>
-      <p>Riwayat terima/kerjakan pesanan akan muncul di sini setelah fitur Order System dibangun.</p>
+  const userId = AppState.session?.user?.id;
+  const { data: orders, error } = await sb
+    .from('orders')
+    .select('id, category, status, price, created_at, updated_at, seeker_id')
+    .eq('provider_id', userId)
+    .order('created_at', { ascending: false });
+
+  const statGrid = document.getElementById('providerStatGrid');
+  const recentEl = document.getElementById('providerRecentOrders');
+  const earningsCard = document.getElementById('providerEarningsCard');
+
+  if (error || !orders) {
+    statGrid.innerHTML = `<div class="mini-loading">Gagal memuat data</div>`;
+    recentEl.innerHTML = `<div class="empty-state"><div class="ico">⚠️</div><h4>Gagal memuat pesanan</h4></div>`;
+    earningsCard.innerHTML = `<div class="eh"><h4>Ringkasan Pendapatan</h4></div>`;
+    return;
+  }
+
+  const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+  const isToday = (d) => new Date(d) >= todayStart;
+
+  const pendingCount = orders.filter((o) => o.status === 'pending').length;
+  const activeCount = orders.filter((o) => o.status === 'accepted' || o.status === 'in_progress').length;
+  const completedToday = orders.filter((o) => o.status === 'completed' && isToday(o.updated_at));
+  const completedAll = orders.filter((o) => o.status === 'completed');
+  const earningsToday = completedToday.reduce((sum, o) => sum + (Number(o.price) || 0), 0);
+  const earningsTotal = completedAll.reduce((sum, o) => sum + (Number(o.price) || 0), 0);
+
+  statGrid.innerHTML = `
+    <div class="stat-item"><div class="n">${pendingCount}</div><div class="l">Pesanan<br>Baru</div></div>
+    <div class="stat-item"><div class="n">${activeCount}</div><div class="l">Pesanan<br>Aktif</div></div>
+    <div class="stat-item"><div class="n">${completedToday.length}</div><div class="l">Selesai<br>Hari Ini</div></div>
+    <div class="stat-item"><div class="n">–</div><div class="l">Rating<br>Saya</div></div>
+    <div class="stat-item"><div class="n">${formatRupiah(earningsToday)}</div><div class="l">Pendapatan<br>Hari Ini</div></div>
+  `;
+
+  earningsCard.innerHTML = `
+    <div class="eh"><h4>Ringkasan Pendapatan</h4></div>
+    <div class="earnings-row">
+      <div><div class="ev">${formatRupiah(earningsTotal)}</div><div class="el">Total Pendapatan</div></div>
+      <div><div class="ev">${completedAll.length}</div><div class="el">Selesai</div></div>
+      <div><div class="ev">–</div><div class="el">Rata-rata Rating</div></div>
     </div>
   `;
+
+  if (orders.length === 0) {
+    recentEl.innerHTML = `
+      <div class="empty-state">
+        <div class="ico">📥</div>
+        <h4>Belum ada pesanan masuk</h4>
+        <p>Tambahkan layanan kamu di "Layanan Saya" biar mulai kelihatan Pencari Jasa.</p>
+      </div>`;
+    return;
+  }
+
+  const seekerMap = await fetchProfilesByIds(orders.map((o) => o.seeker_id));
+  recentEl.innerHTML = orders.slice(0, 3).map((o) => {
+    const seekerName = seekerMap[o.seeker_id]?.full_name || 'Pencari Jasa';
+    return `
+      <div class="order-list-item">
+        <div class="oli-top">
+          <span class="oli-title">${escapeHtml(o.category)}</span>
+          <span class="status-pill ${o.status}">${ORDER_STATUS_LABEL[o.status]}</span>
+        </div>
+        <div class="oli-sub">dari ${escapeHtml(seekerName)} · ${new Date(o.created_at).toLocaleDateString('id-ID')}</div>
+        <div class="oli-price">${formatRupiah(o.price)}</div>
+      </div>`;
+  }).join('');
+}
+
+async function loadProviderPesanan(content) {
+  content.innerHTML = `<div class="section-head"><h3>Pesanan Masuk</h3></div><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div>`;
+
+  const userId = AppState.session?.user?.id;
+  const { data: orders, error } = await sb
+    .from('orders')
+    .select('id, category, status, price, note, created_at, seeker_id')
+    .eq('provider_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error || !orders) {
+    content.innerHTML = `<div class="section-head"><h3>Pesanan Masuk</h3></div><div class="empty-state"><div class="ico">⚠️</div><h4>Gagal memuat pesanan</h4></div>`;
+    return;
+  }
+  if (orders.length === 0) {
+    content.innerHTML = `
+      <div class="section-head"><h3>Pesanan Masuk</h3></div>
+      <div class="empty-state">
+        <div class="ico">📥</div>
+        <h4>Belum ada pesanan</h4>
+        <p>Pastikan kamu sudah menambahkan layanan lewat "Layanan Saya" di Dashboard.</p>
+      </div>`;
+    return;
+  }
+
+  const seekerMap = await fetchProfilesByIds(orders.map((o) => o.seeker_id));
+  const list = orders.map((o) => {
+    const seekerName = seekerMap[o.seeker_id]?.full_name || 'Pencari Jasa';
+    let actions = '';
+    if (o.status === 'pending') {
+      actions = `<div class="oli-actions">
+        <button class="btn-oli primary" data-order-action='{"id":"${o.id}","status":"accepted"}'>Terima</button>
+        <button class="btn-oli danger" data-order-action='{"id":"${o.id}","status":"cancelled"}'>Tolak</button>
+      </div>`;
+    } else if (o.status === 'accepted') {
+      actions = `<div class="oli-actions"><button class="btn-oli primary" data-order-action='{"id":"${o.id}","status":"in_progress"}'>Mulai Kerjakan</button></div>`;
+    } else if (o.status === 'in_progress') {
+      actions = `<div class="oli-actions"><button class="btn-oli primary" data-order-action='{"id":"${o.id}","status":"completed"}'>Tandai Selesai</button></div>`;
+    }
+    return `
+      <div class="order-list-item">
+        <div class="oli-top">
+          <span class="oli-title">${escapeHtml(o.category)}</span>
+          <span class="status-pill ${o.status}">${ORDER_STATUS_LABEL[o.status]}</span>
+        </div>
+        <div class="oli-sub">dari ${escapeHtml(seekerName)} · ${new Date(o.created_at).toLocaleDateString('id-ID')}${o.note ? ' · "' + escapeHtml(o.note) + '"' : ''}</div>
+        <div class="oli-price">${formatRupiah(o.price)}</div>
+        ${actions}
+      </div>`;
+  }).join('');
+
+  content.innerHTML = `<div class="section-head"><h3>Pesanan Masuk</h3></div>${list}`;
+}
+
+async function updateOrderStatus(orderId, status) {
+  const { error } = await sb.from('orders').update({ status, updated_at: new Date().toISOString() }).eq('id', orderId);
+  if (error) { showToast('Gagal memperbarui pesanan.'); return; }
+  showToast('Status pesanan diperbarui ✓');
+  loadProviderPesanan(document.getElementById('providerContent'));
 }
 
 function renderProviderChat() {
@@ -1368,7 +1808,7 @@ function renderProviderChat() {
     <div class="empty-state">
       <div class="ico">💬</div>
       <h4>Belum ada percakapan</h4>
-      <p>Chat dengan pencari jasa akan tersedia setelah fitur Order System &amp; Realtime dibangun.</p>
+      <p>Chat dengan pencari jasa akan tersedia setelah fitur Realtime dibangun.</p>
     </div>
   `;
 }
@@ -1391,13 +1831,144 @@ function renderProviderProfil() {
       <div class="account-row"><span class="k">Role</span><span>Penyedia Jasa</span></div>
       <div class="account-row"><span class="k">Status</span><span>${p.is_available ? 'Tersedia' : 'Tidak Tersedia'}</span></div>
     </div>
+    <button class="quick-item" data-open-my-services style="width:100%; margin-bottom:14px; padding:14px;">
+      <div class="qi">🧰</div><div class="ql">Kelola Layanan Saya</div>
+    </button>
     <button class="btn-danger-outline" data-logout>Keluar dari Akun</button>
   `;
+}
+
+/* ============================================================
+   LAYANAN SAYA — provider tambah/hapus layanan yang ditawarkan
+   ============================================================ */
+async function openMyServices() {
+  const content = document.getElementById('providerContent');
+  content.scrollTop = 0;
+  content.innerHTML = `
+    <div class="back-row"><button class="back-btn" data-back-to-provider-home>←</button><h3>Layanan Saya</h3></div>
+    <button class="fab-add-service" id="addServiceBtn">+ Tambah Layanan Baru</button>
+    <div id="myServicesList"><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div></div>
+  `;
+  document.getElementById('addServiceBtn').addEventListener('click', openAddServiceModal);
+  await loadMyServices();
+}
+
+async function loadMyServices() {
+  const userId = AppState.session?.user?.id;
+  const listEl = document.getElementById('myServicesList');
+  const { data: services, error } = await sb
+    .from('services')
+    .select('id, category, title, description, price')
+    .eq('provider_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) { listEl.innerHTML = `<div class="empty-state"><div class="ico">⚠️</div><h4>Gagal memuat layanan</h4></div>`; return; }
+  if (services.length === 0) {
+    listEl.innerHTML = `
+      <div class="empty-state">
+        <div class="ico">🧰</div>
+        <h4>Belum ada layanan</h4>
+        <p>Tambahkan layanan biar kelihatan Pencari Jasa saat browsing kategori.</p>
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = services.map((s) => `
+    <div class="svc-item">
+      <div>
+        <div class="svc-title">${escapeHtml(s.title)}</div>
+        <div class="svc-sub">${escapeHtml(s.category)}${s.description ? ' · ' + escapeHtml(s.description) : ''}</div>
+        <div class="svc-price">${formatRupiah(s.price)}</div>
+      </div>
+      <button class="btn-icon-danger" data-delete-service="${s.id}">🗑</button>
+    </div>
+  `).join('');
+}
+
+function openAddServiceModal() {
+  const catOptions = SEEKER_CATEGORIES.map((c) => `<option value="${escapeHtml(c.label)}">${c.label}</option>`).join('');
+  openModal(`
+    <div class="modal-head">
+      <h3>Tambah Layanan</h3>
+      <button class="modal-close-btn" id="modalCloseBtn">✕</button>
+    </div>
+    <div class="field">
+      <label>Kategori</label>
+      <div class="input-wrap"><select class="select-field" id="svcCategory">${catOptions}</select></div>
+    </div>
+    <div class="field">
+      <label>Judul Layanan</label>
+      <div class="input-wrap"><input type="text" id="svcTitle" placeholder="Contoh: Instalasi Listrik Rumah"></div>
+    </div>
+    <div class="field">
+      <label>Perkiraan Harga (Rp)</label>
+      <div class="input-wrap"><input type="number" id="svcPrice" placeholder="150000"></div>
+    </div>
+    <div class="field">
+      <label>Deskripsi Singkat (opsional)</label>
+      <div class="input-wrap" style="align-items:flex-start;"><textarea class="textarea-field" id="svcDesc" placeholder="Ceritakan singkat layanan kamu"></textarea></div>
+    </div>
+    <button class="btn-primary" id="submitServiceBtn"><span class="btn-label">Simpan Layanan</span></button>
+  `);
+
+  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+  document.getElementById('submitServiceBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('submitServiceBtn');
+    const category = document.getElementById('svcCategory').value;
+    const title = document.getElementById('svcTitle').value.trim();
+    const price = document.getElementById('svcPrice').value;
+    const description = document.getElementById('svcDesc').value.trim();
+
+    if (!title) { showToast('Judul layanan wajib diisi'); return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span><span>Menyimpan…</span>';
+
+    const { error } = await sb.from('services').insert({
+      provider_id: AppState.session?.user?.id,
+      category, title, description: description || null,
+      price: price ? Number(price) : null,
+    });
+
+    if (error) {
+      showToast('Gagal menyimpan layanan.');
+      btn.disabled = false;
+      btn.innerHTML = '<span class="btn-label">Simpan Layanan</span>';
+      return;
+    }
+
+    closeModal();
+    showToast('Layanan berhasil ditambahkan ✓');
+    loadMyServices();
+  });
+}
+
+async function deleteMyService(serviceId) {
+  const { error } = await sb.from('services').delete().eq('id', serviceId);
+  if (error) { showToast('Gagal menghapus layanan.'); return; }
+  showToast('Layanan dihapus.');
+  loadMyServices();
 }
 
 document.getElementById('dashProvider').addEventListener('click', (e) => {
   const tabBtn = e.target.closest('[data-provider-tab]');
   if (tabBtn) { switchProviderTab(tabBtn.dataset.providerTab); return; }
+
+  const myServicesBtn = e.target.closest('[data-open-my-services]');
+  if (myServicesBtn) { openMyServices(); return; }
+
+  const backBtn = e.target.closest('[data-back-to-provider-home]');
+  if (backBtn) { switchProviderTab('home'); return; }
+
+  const actionBtn = e.target.closest('[data-order-action]');
+  if (actionBtn) {
+    const { id, status } = JSON.parse(actionBtn.dataset.orderAction);
+    updateOrderStatus(id, status);
+    return;
+  }
+
+  const deleteBtn = e.target.closest('[data-delete-service]');
+  if (deleteBtn) { deleteMyService(deleteBtn.dataset.deleteService); return; }
 
   const toastBtn = e.target.closest('[data-toast]');
   if (toastBtn) { showToast(toastBtn.dataset.toast); }
