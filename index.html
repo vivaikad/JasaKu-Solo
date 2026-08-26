@@ -907,6 +907,63 @@
     background:#FDF1F1; border:1px solid #F5C6C6; color:#B23434; border-radius:10px;
     padding:10px 12px; font-size:12px; margin-bottom:12px; line-height:1.5;
   }
+
+  /* ============================================================
+     10. ADMIN COMMAND CENTER
+     ============================================================ */
+  .admin-shell{display:flex; flex-direction:column;}
+  .admin-scroll{
+    flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    padding:18px 18px calc(var(--safe-bottom) + 90px); background:var(--mist);
+  }
+  .admin-stat-grid{
+    display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:22px;
+  }
+  .admin-stat-card{
+    background:var(--white); border-radius:14px; padding:14px;
+    box-shadow:0 1px 3px rgba(15,92,42,.06);
+  }
+  .admin-stat-card .n{font-family:var(--font-display); font-size:22px; font-weight:700; color:var(--ink);}
+  .admin-stat-card .l{font-size:11px; color:#8a9a8e; margin-top:2px;}
+
+  .review-card{
+    background:var(--white); border-radius:14px; padding:14px; margin-bottom:12px;
+    box-shadow:0 1px 3px rgba(15,92,42,.06);
+  }
+  .review-card .rc-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;}
+  .review-card .rc-name{font-size:13.5px; font-weight:700; color:var(--ink);}
+  .review-card .rc-meta{font-size:11.5px; color:#8a9a8e; margin-bottom:10px;}
+  .review-photo-btn{
+    background:var(--mist); border:1px solid #E1EFE4; border-radius:10px;
+    padding:9px 12px; font-size:12px; font-weight:600; color:#4a5a4d; margin-bottom:10px;
+    display:inline-block;
+  }
+  .review-photo-preview{width:100%; max-width:220px; border-radius:10px; margin-bottom:10px; display:block;}
+
+  .user-row-card{
+    background:var(--white); border-radius:14px; padding:13px 14px; margin-bottom:9px;
+    display:flex; align-items:center; gap:12px;
+    box-shadow:0 1px 3px rgba(15,92,42,.06);
+  }
+  .user-row-card .ur-av{
+    width:38px; height:38px; border-radius:50%; background:var(--green-600); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; flex:none;
+  }
+  .user-row-card .ur-name{font-size:13px; font-weight:700; color:var(--ink);}
+  .user-row-card .ur-sub{font-size:11px; color:#8a9a8e; margin-top:1px;}
+  .role-tag{font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px; flex:none;}
+  .role-tag.seeker{background:#E3EEFC; color:#2B5FA8;}
+  .role-tag.provider{background:#E3F6E9; color:#1F7A3E;}
+  .role-tag.admin{background:#F3E3FC; color:#7A2BA8;}
+
+  .admin-tabs{
+    display:flex; gap:6px; padding:0 18px 14px; overflow-x:auto; flex:none;
+  }
+  .admin-tab-btn{
+    flex:none; background:rgba(255,255,255,.14); color:rgba(255,255,255,.85);
+    border:none; border-radius:20px; padding:8px 15px; font-size:12px; font-weight:600; white-space:nowrap;
+  }
+  .admin-tab-btn.active{background:var(--white); color:var(--green-700);}
 </style>
 </head>
 <body>
@@ -1173,33 +1230,26 @@
     </nav>
   </section>
 
-  <section class="stage-screen" id="dashAdmin">
-    <div class="dash-topbar">
-      <div class="who">
-        <div class="avatar" id="adminAvatarInitial">?</div>
-        <div>
-          <div class="name" id="adminName">Admin</div>
-          <span class="role-badge">Super Admin</span>
+  <section class="stage-screen admin-shell" id="dashAdmin">
+    <div class="dash-topbar" style="flex-direction:column; align-items:stretch; gap:12px;">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <div class="who">
+          <div class="avatar" id="adminAvatarInitial">?</div>
+          <div>
+            <div class="name" id="adminName">Admin</div>
+            <span class="role-badge">Super Admin</span>
+          </div>
         </div>
+        <button class="btn-logout" data-logout>Keluar</button>
       </div>
-      <button class="btn-logout" data-logout>Keluar</button>
     </div>
-    <div class="stage-body">
-      <div class="roadmap-card">
-        <h2>📋 Progres Tahap 23 — Full index.html v1.0</h2>
-        <ul class="roadmap-list">
-          <li><span class="step-badge done">✓</span> Fondasi PWA</li>
-          <li><span class="step-badge done">✓</span> Auth: Register / Login / Role Selection</li>
-          <li><span class="step-badge done">✓</span> Seeker Dashboard</li>
-          <li><span class="step-badge done">✓</span> Provider Dashboard</li>
-          <li><span class="step-badge done">✓</span> Order System</li>
-          <li><span class="step-badge done">✓</span> Verification (Camera + GPS + KTP)</li>
-          <li><span class="step-badge now">●</span> Admin Command Center</li>
-          <li class="dim"><span class="step-badge next">○</span> Payment, Dispute, Realtime</li>
-        </ul>
-      </div>
-      <p class="status-note">Login berhasil sebagai <b>Admin</b> ✓ Dashboard monitoring lengkap dibangun setelah role Seeker &amp; Provider selesai.</p>
+    <div class="admin-tabs" style="background:var(--green-800); padding-top:12px;">
+      <button class="admin-tab-btn active" data-admin-tab="ringkasan">Ringkasan</button>
+      <button class="admin-tab-btn" data-admin-tab="verifikasi">Verifikasi</button>
+      <button class="admin-tab-btn" data-admin-tab="pengguna">Pengguna</button>
+      <button class="admin-tab-btn" data-admin-tab="pesanan">Pesanan</button>
     </div>
+    <div class="admin-scroll" id="adminContent"><!-- dirender JS --></div>
   </section>
 
 </div>
@@ -1307,6 +1357,7 @@ function showDashboard(role) {
     switchProviderTab('home');
     updateProviderVerifyBadge();
   }
+  if (role === 'admin') switchAdminTab('ringkasan');
 
   setTimeout(() => document.getElementById(map[role]).classList.add('active'), 300);
 }
@@ -2274,6 +2325,186 @@ document.getElementById('availabilityToggle').addEventListener('click', async (e
     showToast('Gagal menyimpan status. Coba lagi.');
   } else {
     if (AppState.profile) AppState.profile.is_available = newValue;
+  }
+});
+
+/* ============================================================
+   ADMIN COMMAND CENTER
+   ============================================================ */
+function switchAdminTab(tab) {
+  document.querySelectorAll('#dashAdmin .admin-tab-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.adminTab === tab);
+  });
+  const content = document.getElementById('adminContent');
+  content.scrollTop = 0;
+  if (tab === 'ringkasan') loadAdminRingkasan(content);
+  else if (tab === 'verifikasi') loadAdminVerifikasi(content);
+  else if (tab === 'pengguna') loadAdminPengguna(content);
+  else if (tab === 'pesanan') loadAdminPesanan(content);
+}
+
+async function loadAdminRingkasan(content) {
+  content.innerHTML = `<div class="mini-loading"><span class="dot-spin"></span>Memuat…</div>`;
+
+  const [{ count: totalUsers }, { data: rolesData }, { data: ordersData }, { count: pendingVerif }] = await Promise.all([
+    sb.from('profiles').select('id', { count: 'exact', head: true }),
+    sb.from('user_roles').select('role'),
+    sb.from('orders').select('status'),
+    sb.from('provider_verifications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+  ]);
+
+  const providerCount = (rolesData || []).filter((r) => r.role === 'provider').length;
+  const seekerCount = (rolesData || []).filter((r) => r.role === 'seeker').length;
+  const totalOrders = (ordersData || []).length;
+  const completedOrders = (ordersData || []).filter((o) => o.status === 'completed').length;
+
+  content.innerHTML = `
+    <div class="section-head"><h3>Ringkasan Platform</h3></div>
+    <div class="admin-stat-grid">
+      <div class="admin-stat-card"><div class="n">${totalUsers ?? 0}</div><div class="l">Total Pengguna</div></div>
+      <div class="admin-stat-card"><div class="n">${providerCount}</div><div class="l">Penyedia Jasa</div></div>
+      <div class="admin-stat-card"><div class="n">${seekerCount}</div><div class="l">Pencari Jasa</div></div>
+      <div class="admin-stat-card"><div class="n">${totalOrders}</div><div class="l">Total Pesanan</div></div>
+      <div class="admin-stat-card"><div class="n">${completedOrders}</div><div class="l">Pesanan Selesai</div></div>
+      <div class="admin-stat-card"><div class="n">${pendingVerif ?? 0}</div><div class="l">Menunggu Verifikasi</div></div>
+    </div>
+    <div class="status-note">Data di atas dihitung langsung dari database secara real-time setiap kali tab ini dibuka.</div>
+  `;
+}
+
+async function loadAdminVerifikasi(content) {
+  content.innerHTML = `<div class="section-head"><h3>Verifikasi Menunggu</h3></div><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div>`;
+
+  const { data: rows, error } = await sb
+    .from('provider_verifications')
+    .select('id, provider_id, level, status, selfie_path, ktp_path, latitude, longitude, accuracy, created_at')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true });
+
+  if (error) { content.innerHTML = `<div class="section-head"><h3>Verifikasi Menunggu</h3></div><div class="empty-state"><div class="ico">⚠️</div><h4>Gagal memuat data</h4></div>`; return; }
+  if (rows.length === 0) {
+    content.innerHTML = `<div class="section-head"><h3>Verifikasi Menunggu</h3></div><div class="empty-state"><div class="ico">✅</div><h4>Tidak ada antrean</h4><p>Semua pengajuan verifikasi sudah ditinjau.</p></div>`;
+    return;
+  }
+
+  const providerMap = await fetchProfilesByIds(rows.map((r) => r.provider_id));
+  const cards = rows.map((r) => {
+    const name = providerMap[r.provider_id]?.full_name || 'Penyedia Jasa';
+    const levelLabel = r.level === 'basic' ? 'Verifikasi Dasar (Selfie + GPS)' : 'Super Verified (KTP)';
+    const meta = r.level === 'basic'
+      ? `Lokasi: ${r.latitude ? r.latitude.toFixed(5) : '-'}, ${r.longitude ? r.longitude.toFixed(5) : '-'} (±${Math.round(r.accuracy || 0)}m) · ${new Date(r.created_at).toLocaleString('id-ID')}`
+      : `Diajukan ${new Date(r.created_at).toLocaleString('id-ID')}`;
+    const bucket = r.level === 'basic' ? 'provider-verification' : 'ktp';
+    const path = r.level === 'basic' ? r.selfie_path : r.ktp_path;
+    return `
+      <div class="review-card">
+        <div class="rc-top"><span class="rc-name">${escapeHtml(name)}</span><span class="status-pill pending">${levelLabel}</span></div>
+        <div class="rc-meta">${meta}</div>
+        <button class="review-photo-btn" data-view-photo='${JSON.stringify({ bucket, path }).replace(/'/g, "&#39;")}'>🖼 Lihat Foto</button>
+        <div id="photo-${r.id}"></div>
+        <div class="oli-actions">
+          <button class="btn-oli primary" data-verif-decide='{"id":"${r.id}","status":"approved"}'>Setujui</button>
+          <button class="btn-oli danger" data-verif-decide='{"id":"${r.id}","status":"rejected"}'>Tolak</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  content.innerHTML = `<div class="section-head"><h3>Verifikasi Menunggu (${rows.length})</h3></div>${cards}`;
+}
+
+async function viewVerificationPhoto(btn) {
+  const { bucket, path } = JSON.parse(btn.dataset.viewPhoto);
+  btn.textContent = 'Memuat foto…';
+  const { data, error } = await sb.storage.from(bucket).createSignedUrl(path, 300);
+  if (error || !data) { btn.textContent = 'Gagal memuat foto'; return; }
+  const row = btn.closest('.review-card');
+  const img = document.createElement('img');
+  img.className = 'review-photo-preview';
+  img.src = data.signedUrl;
+  btn.replaceWith(img);
+}
+
+async function decideVerification(id, status) {
+  const { error } = await sb.from('provider_verifications').update({ status }).eq('id', id);
+  if (error) { showToast('Gagal memperbarui status.'); return; }
+  showToast(status === 'approved' ? 'Verifikasi disetujui ✓' : 'Verifikasi ditolak');
+  loadAdminVerifikasi(document.getElementById('adminContent'));
+}
+
+async function loadAdminPengguna(content) {
+  content.innerHTML = `<div class="section-head"><h3>Semua Pengguna</h3></div><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div>`;
+
+  const [{ data: profiles, error: pErr }, { data: roles, error: rErr }] = await Promise.all([
+    sb.from('profiles').select('id, full_name, phone, created_at').order('created_at', { ascending: false }),
+    sb.from('user_roles').select('user_id, role'),
+  ]);
+
+  if (pErr || rErr) { content.innerHTML = `<div class="section-head"><h3>Semua Pengguna</h3></div><div class="empty-state"><div class="ico">⚠️</div><h4>Gagal memuat data</h4></div>`; return; }
+
+  const roleMap = {};
+  (roles || []).forEach((r) => { roleMap[r.user_id] = r.role; });
+
+  const rows = profiles.map((p) => {
+    const role = roleMap[p.id] || 'seeker';
+    const roleLabel = { seeker: 'Pencari Jasa', provider: 'Penyedia Jasa', admin: 'Admin' }[role] || role;
+    const initial = (p.full_name || '?').trim().charAt(0).toUpperCase() || '?';
+    return `
+      <div class="user-row-card">
+        <div class="ur-av">${initial}</div>
+        <div style="flex:1;">
+          <div class="ur-name">${escapeHtml(p.full_name || 'Tanpa nama')}</div>
+          <div class="ur-sub">${escapeHtml(p.phone || '-')}</div>
+        </div>
+        <span class="role-tag ${role}">${roleLabel}</span>
+      </div>`;
+  }).join('');
+
+  content.innerHTML = `<div class="section-head"><h3>Semua Pengguna (${profiles.length})</h3></div>${rows}`;
+}
+
+async function loadAdminPesanan(content) {
+  content.innerHTML = `<div class="section-head"><h3>Semua Pesanan</h3></div><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div>`;
+
+  const { data: orders, error } = await sb
+    .from('orders')
+    .select('id, category, status, price, created_at, seeker_id, provider_id')
+    .order('created_at', { ascending: false });
+
+  if (error) { content.innerHTML = `<div class="section-head"><h3>Semua Pesanan</h3></div><div class="empty-state"><div class="ico">⚠️</div><h4>Gagal memuat data</h4></div>`; return; }
+  if (orders.length === 0) { content.innerHTML = `<div class="section-head"><h3>Semua Pesanan</h3></div><div class="empty-state"><div class="ico">📋</div><h4>Belum ada pesanan di platform</h4></div>`; return; }
+
+  const ids = orders.map((o) => o.seeker_id).concat(orders.map((o) => o.provider_id));
+  const profileMap = await fetchProfilesByIds(ids);
+
+  const list = orders.map((o) => {
+    const seekerName = profileMap[o.seeker_id]?.full_name || 'Pencari Jasa';
+    const providerName = profileMap[o.provider_id]?.full_name || 'Penyedia Jasa';
+    return `
+      <div class="order-list-item">
+        <div class="oli-top">
+          <span class="oli-title">${escapeHtml(o.category)}</span>
+          <span class="status-pill ${o.status}">${ORDER_STATUS_LABEL[o.status]}</span>
+        </div>
+        <div class="oli-sub">${escapeHtml(seekerName)} → ${escapeHtml(providerName)} · ${new Date(o.created_at).toLocaleDateString('id-ID')}</div>
+        <div class="oli-price">${formatRupiah(o.price)}</div>
+      </div>`;
+  }).join('');
+
+  content.innerHTML = `<div class="section-head"><h3>Semua Pesanan (${orders.length})</h3></div>${list}`;
+}
+
+document.getElementById('dashAdmin').addEventListener('click', (e) => {
+  const tabBtn = e.target.closest('[data-admin-tab]');
+  if (tabBtn) { switchAdminTab(tabBtn.dataset.adminTab); return; }
+
+  const photoBtn = e.target.closest('[data-view-photo]');
+  if (photoBtn) { viewVerificationPhoto(photoBtn); return; }
+
+  const decideBtn = e.target.closest('[data-verif-decide]');
+  if (decideBtn) {
+    const { id, status } = JSON.parse(decideBtn.dataset.verifDecide);
+    decideVerification(id, status);
+    return;
   }
 });
 
