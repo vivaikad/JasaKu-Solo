@@ -857,6 +857,56 @@
     width:100%; border:none; background:transparent; outline:none; resize:vertical;
     padding:13px 10px; font-size:14px; font-family:var(--font-body); color:var(--ink); min-height:70px;
   }
+
+  /* ============================================================
+     9. VERIFICATION (Camera + GPS + KTP)
+     ============================================================ */
+  .verif-card{
+    background:var(--white); border-radius:16px; padding:18px; margin-bottom:16px;
+    box-shadow:0 1px 3px rgba(15,92,42,.06);
+  }
+  .verif-card-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;}
+  .verif-card-head h4{font-family:var(--font-display); font-size:14.5px; margin:0; color:var(--ink);}
+  .verif-card p.desc{font-size:12px; color:#8a9a8e; margin:0 0 14px; line-height:1.5;}
+
+  .verif-status{font-size:10.5px; font-weight:700; padding:3px 10px; border-radius:20px;}
+  .verif-status.unverified{background:#F1F6F2; color:#8a9a8e;}
+  .verif-status.pending{background:#FFF1DB; color:#B5760F;}
+  .verif-status.approved{background:#E3F6E9; color:#1F7A3E;}
+  .verif-status.rejected{background:#FDE8E8; color:#B23434;}
+
+  .capture-row{display:flex; gap:12px; margin-bottom:14px;}
+  .capture-box{
+    flex:1; border:1.5px dashed #CFE4D5; border-radius:12px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:16px 10px; text-align:center; background:var(--mist); position:relative; overflow:hidden;
+    min-height:110px;
+  }
+  .capture-box img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;}
+  .capture-box .cb-ico{font-size:22px; margin-bottom:6px;}
+  .capture-box .cb-label{font-size:11.5px; font-weight:600; color:#4a5a4d;}
+  .capture-box.filled .cb-ico, .capture-box.filled .cb-label{display:none;}
+  .capture-box .cb-check{
+    position:absolute; top:6px; right:6px; background:var(--green-600); color:#fff;
+    width:20px; height:20px; border-radius:50%; display:none; align-items:center; justify-content:center; font-size:11px;
+  }
+  .capture-box.filled .cb-check{display:flex;}
+
+  .gps-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:var(--mist); border-radius:12px; padding:12px 14px; margin-bottom:14px;
+  }
+  .gps-row .gr-text{font-size:11.5px; color:#4a5a4d; line-height:1.5;}
+  .gps-row .gr-text b{color:var(--ink);}
+  .btn-gps{
+    flex:none; background:var(--green-600); color:#fff; border:none;
+    border-radius:10px; padding:9px 14px; font-size:12px; font-weight:700;
+  }
+
+  .verif-reject-note{
+    background:#FDF1F1; border:1px solid #F5C6C6; color:#B23434; border-radius:10px;
+    padding:10px 12px; font-size:12px; margin-bottom:12px; line-height:1.5;
+  }
 </style>
 </head>
 <body>
@@ -1094,7 +1144,7 @@
           <p class="greet-label">Selamat datang kembali,</p>
           <p class="greet-name" id="providerName">Penyedia Jasa</p>
           <div class="prov-badges">
-            <span class="verify-badge">🛡️ Akun Terverifikasi</span>
+            <span class="verify-badge" id="providerVerifyBadge">🛡️ Memuat status…</span>
           </div>
         </div>
         <div class="top-icons">
@@ -1143,6 +1193,7 @@
           <li><span class="step-badge done">✓</span> Seeker Dashboard</li>
           <li><span class="step-badge done">✓</span> Provider Dashboard</li>
           <li><span class="step-badge done">✓</span> Order System</li>
+          <li><span class="step-badge done">✓</span> Verification (Camera + GPS + KTP)</li>
           <li><span class="step-badge now">●</span> Admin Command Center</li>
           <li class="dim"><span class="step-badge next">○</span> Payment, Dispute, Realtime</li>
         </ul>
@@ -1254,6 +1305,7 @@ function showDashboard(role) {
     toggleBtn.classList.toggle('on', isAvailable);
     document.getElementById('availabilityLabel').textContent = isAvailable ? 'Tersedia' : 'Tidak Tersedia';
     switchProviderTab('home');
+    updateProviderVerifyBadge();
   }
 
   setTimeout(() => document.getElementById(map[role]).classList.add('active'), 300);
@@ -1822,7 +1874,7 @@ function renderProviderProfil() {
       <div class="av">${initial}</div>
       <div>
         <div class="nm">${escapeHtml(fullName)}</div>
-        <div class="rl">Penyedia Jasa · Akun Terverifikasi</div>
+        <div class="rl">Penyedia Jasa</div>
       </div>
     </div>
     <div class="account-list">
@@ -1834,8 +1886,232 @@ function renderProviderProfil() {
     <button class="quick-item" data-open-my-services style="width:100%; margin-bottom:14px; padding:14px;">
       <div class="qi">🧰</div><div class="ql">Kelola Layanan Saya</div>
     </button>
+    <button class="quick-item" data-open-verification style="width:100%; margin-bottom:14px; padding:14px;">
+      <div class="qi">🛡️</div><div class="ql">Verifikasi Akun</div>
+    </button>
     <button class="btn-danger-outline" data-logout>Keluar dari Akun</button>
   `;
+}
+
+/* ============================================================
+   VERIFICATION (Camera + GPS + KTP) — sisi pengajuan.
+   Persetujuan (approve/reject) dilakukan Admin di tahap berikutnya.
+   ============================================================ */
+const VERIF_STATUS_LABEL = { unverified: 'Belum Diajukan', pending: 'Menunggu Peninjauan', approved: 'Terverifikasi', rejected: 'Ditolak' };
+let verifCapture = { selfieFile: null, ktpFile: null, lat: null, lng: null, accuracy: null };
+
+async function fetchLatestVerification(providerId, level) {
+  const { data, error } = await sb
+    .from('provider_verifications')
+    .select('id, status, created_at')
+    .eq('provider_id', providerId)
+    .eq('level', level)
+    .order('created_at', { ascending: false })
+    .limit(1);
+  if (error || !data || data.length === 0) return { status: 'unverified' };
+  return data[0];
+}
+
+async function updateProviderVerifyBadge() {
+  const badge = document.getElementById('providerVerifyBadge');
+  if (!badge) return;
+  const userId = AppState.session?.user?.id;
+  const basic = await fetchLatestVerification(userId, 'basic');
+  const ktp = await fetchLatestVerification(userId, 'ktp');
+  AppState.verifBasic = basic;
+  AppState.verifKtp = ktp;
+
+  if (ktp.status === 'approved') badge.textContent = '🛡️ Super Verified';
+  else if (basic.status === 'approved') badge.textContent = '🛡️ Terverifikasi';
+  else if (basic.status === 'pending') badge.textContent = '🕒 Menunggu Verifikasi';
+  else badge.textContent = '🛡️ Belum Terverifikasi';
+}
+
+async function openVerification() {
+  const content = document.getElementById('providerContent');
+  content.scrollTop = 0;
+  content.innerHTML = `<div class="back-row"><button class="back-btn" data-back-to-provider-profil>←</button><h3>Verifikasi Akun</h3></div><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div>`;
+
+  const userId = AppState.session?.user?.id;
+  const basic = await fetchLatestVerification(userId, 'basic');
+  const ktp = await fetchLatestVerification(userId, 'ktp');
+
+  content.innerHTML = `
+    <div class="back-row"><button class="back-btn" data-back-to-provider-profil>←</button><h3>Verifikasi Akun</h3></div>
+
+    <div class="verif-card">
+      <div class="verif-card-head">
+        <h4>1. Verifikasi Dasar</h4>
+        <span class="verif-status ${basic.status}">${VERIF_STATUS_LABEL[basic.status]}</span>
+      </div>
+      <p class="desc">Foto selfie langsung dari kamera + lokasi GPS, buat memastikan kamu benar orang yang terdaftar dan berada di area layanan.</p>
+      ${basic.status === 'rejected' ? `<div class="verif-reject-note">Pengajuan sebelumnya ditolak. Silakan ajukan ulang dengan foto &amp; lokasi yang lebih jelas.</div>` : ''}
+      ${basic.status === 'pending' ? `<div class="verif-reject-note" style="background:#FFF7E8;border-color:#F5E2B8;color:#8a7a4a;">Pengajuan kamu sedang menunggu peninjauan admin.</div>` : ''}
+      ${(basic.status === 'unverified' || basic.status === 'rejected') ? `
+        <div class="capture-row">
+          <div class="capture-box" id="selfieBox">
+            <div class="cb-ico">🤳</div>
+            <div class="cb-label">Ambil Selfie</div>
+            <div class="cb-check">✓</div>
+          </div>
+        </div>
+        <input type="file" accept="image/*" capture="user" id="selfieInput" style="display:none;">
+        <button class="btn-mini-outline" id="takeSelfieBtn" style="width:100%; margin-bottom:14px;">📷 Buka Kamera (Selfie)</button>
+
+        <div class="gps-row">
+          <div class="gr-text" id="gpsText">Lokasi belum diambil</div>
+          <button class="btn-gps" id="takeGpsBtn">Ambil Lokasi</button>
+        </div>
+
+        <button class="btn-primary" id="submitBasicBtn"><span class="btn-label">Kirim Verifikasi Dasar</span></button>
+      ` : ''}
+    </div>
+
+    <div class="verif-card">
+      <div class="verif-card-head">
+        <h4>2. Super Verified (KTP)</h4>
+        <span class="verif-status ${ktp.status}">${VERIF_STATUS_LABEL[ktp.status]}</span>
+      </div>
+      <p class="desc">Upload foto KTP buat naik status jadi Super Verified — meningkatkan kepercayaan Pencari Jasa. Foto KTP disimpan privat, cuma bisa diakses admin untuk peninjauan.</p>
+      ${ktp.status === 'rejected' ? `<div class="verif-reject-note">Pengajuan KTP sebelumnya ditolak. Silakan ajukan ulang dengan foto yang lebih jelas.</div>` : ''}
+      ${ktp.status === 'pending' ? `<div class="verif-reject-note" style="background:#FFF7E8;border-color:#F5E2B8;color:#8a7a4a;">Foto KTP kamu sedang menunggu peninjauan admin.</div>` : ''}
+      ${(ktp.status === 'unverified' || ktp.status === 'rejected') ? `
+        <div class="capture-row">
+          <div class="capture-box" id="ktpBox">
+            <div class="cb-ico">🪪</div>
+            <div class="cb-label">Foto KTP</div>
+            <div class="cb-check">✓</div>
+          </div>
+        </div>
+        <input type="file" accept="image/*" capture="environment" id="ktpInput" style="display:none;">
+        <button class="btn-mini-outline" id="takeKtpBtn" style="width:100%; margin-bottom:14px;">📷 Foto KTP</button>
+        <button class="btn-primary" id="submitKtpBtn"><span class="btn-label">Kirim Verifikasi KTP</span></button>
+      ` : ''}
+    </div>
+  `;
+
+  verifCapture = { selfieFile: null, ktpFile: null, lat: null, lng: null, accuracy: null };
+  wireVerificationHandlers();
+}
+
+function wireVerificationHandlers() {
+  const selfieInput = document.getElementById('selfieInput');
+  const takeSelfieBtn = document.getElementById('takeSelfieBtn');
+  if (takeSelfieBtn) {
+    takeSelfieBtn.addEventListener('click', () => selfieInput.click());
+    selfieInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      verifCapture.selfieFile = file;
+      const box = document.getElementById('selfieBox');
+      box.classList.add('filled');
+      box.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="Selfie"><div class="cb-check" style="display:flex;">✓</div>`;
+    });
+  }
+
+  const takeGpsBtn = document.getElementById('takeGpsBtn');
+  if (takeGpsBtn) {
+    takeGpsBtn.addEventListener('click', () => {
+      const gpsText = document.getElementById('gpsText');
+      if (!navigator.geolocation) { gpsText.textContent = 'GPS tidak didukung perangkat ini'; return; }
+      gpsText.textContent = 'Mengambil lokasi…';
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          verifCapture.lat = pos.coords.latitude;
+          verifCapture.lng = pos.coords.longitude;
+          verifCapture.accuracy = pos.coords.accuracy;
+          gpsText.innerHTML = `<b>Lokasi berhasil diambil</b><br>Akurasi ±${Math.round(pos.coords.accuracy)}m`;
+        },
+        (err) => { gpsText.textContent = 'Gagal ambil lokasi: ' + err.message; },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    });
+  }
+
+  const submitBasicBtn = document.getElementById('submitBasicBtn');
+  if (submitBasicBtn) submitBasicBtn.addEventListener('click', submitBasicVerification);
+
+  const ktpInput = document.getElementById('ktpInput');
+  const takeKtpBtn = document.getElementById('takeKtpBtn');
+  if (takeKtpBtn) {
+    takeKtpBtn.addEventListener('click', () => ktpInput.click());
+    ktpInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      verifCapture.ktpFile = file;
+      const box = document.getElementById('ktpBox');
+      box.classList.add('filled');
+      box.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="KTP"><div class="cb-check" style="display:flex;">✓</div>`;
+    });
+  }
+
+  const submitKtpBtn = document.getElementById('submitKtpBtn');
+  if (submitKtpBtn) submitKtpBtn.addEventListener('click', submitKtpVerification);
+}
+
+async function submitBasicVerification() {
+  if (!verifCapture.selfieFile) { showToast('Ambil foto selfie dulu'); return; }
+  if (!verifCapture.lat) { showToast('Ambil lokasi GPS dulu'); return; }
+
+  const btn = document.getElementById('submitBasicBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span><span>Mengirim…</span>';
+
+  const userId = AppState.session?.user?.id;
+  const path = `${userId}/selfie-${Date.now()}.jpg`;
+
+  const { error: uploadErr } = await sb.storage.from('provider-verification').upload(path, verifCapture.selfieFile);
+  if (uploadErr) {
+    showToast('Gagal upload foto. Coba lagi.');
+    btn.disabled = false; btn.innerHTML = '<span class="btn-label">Kirim Verifikasi Dasar</span>';
+    return;
+  }
+
+  const { error: insertErr } = await sb.from('provider_verifications').insert({
+    provider_id: userId, level: 'basic', selfie_path: path,
+    latitude: verifCapture.lat, longitude: verifCapture.lng, accuracy: verifCapture.accuracy,
+    status: 'pending',
+  });
+
+  if (insertErr) {
+    showToast('Gagal menyimpan pengajuan. Coba lagi.');
+    btn.disabled = false; btn.innerHTML = '<span class="btn-label">Kirim Verifikasi Dasar</span>';
+    return;
+  }
+
+  showToast('Verifikasi dasar terkirim, menunggu peninjauan ✓');
+  openVerification();
+}
+
+async function submitKtpVerification() {
+  if (!verifCapture.ktpFile) { showToast('Foto KTP dulu'); return; }
+
+  const btn = document.getElementById('submitKtpBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span><span>Mengirim…</span>';
+
+  const userId = AppState.session?.user?.id;
+  const path = `${userId}/ktp-${Date.now()}.jpg`;
+
+  const { error: uploadErr } = await sb.storage.from('ktp').upload(path, verifCapture.ktpFile);
+  if (uploadErr) {
+    showToast('Gagal upload KTP. Coba lagi.');
+    btn.disabled = false; btn.innerHTML = '<span class="btn-label">Kirim Verifikasi KTP</span>';
+    return;
+  }
+
+  const { error: insertErr } = await sb.from('provider_verifications').insert({
+    provider_id: userId, level: 'ktp', ktp_path: path, status: 'pending',
+  });
+
+  if (insertErr) {
+    showToast('Gagal menyimpan pengajuan. Coba lagi.');
+    btn.disabled = false; btn.innerHTML = '<span class="btn-label">Kirim Verifikasi KTP</span>';
+    return;
+  }
+
+  showToast('Verifikasi KTP terkirim, menunggu peninjauan ✓');
+  openVerification();
 }
 
 /* ============================================================
@@ -1956,6 +2232,12 @@ document.getElementById('dashProvider').addEventListener('click', (e) => {
 
   const myServicesBtn = e.target.closest('[data-open-my-services]');
   if (myServicesBtn) { openMyServices(); return; }
+
+  const openVerifBtn = e.target.closest('[data-open-verification]');
+  if (openVerifBtn) { openVerification(); return; }
+
+  const backToProfilBtn = e.target.closest('[data-back-to-provider-profil]');
+  if (backToProfilBtn) { switchProviderTab('profil'); return; }
 
   const backBtn = e.target.closest('[data-back-to-provider-home]');
   if (backBtn) { switchProviderTab('home'); return; }
