@@ -477,6 +477,195 @@
     background:rgba(255,255,255,.14); color:#fff; border:none;
     border-radius:10px; padding:9px 13px; font-size:12.5px; font-weight:600;
   }
+
+  /* ============================================================
+     6. SEEKER DASHBOARD (shell + tabs)
+     ============================================================ */
+  .seeker-shell{display:flex; flex-direction:column;}
+
+  .seeker-topbar{
+    flex:none;
+    padding:calc(var(--safe-top) + 16px) 18px 18px;
+    background:var(--green-800); color:var(--white);
+  }
+  .seeker-topbar-row{display:flex; align-items:flex-start; justify-content:space-between;}
+  .seeker-topbar .greet-label{font-size:12.5px; color:rgba(255,255,255,.75); margin:0;}
+  .seeker-topbar .greet-name{font-family:var(--font-display); font-size:19px; font-weight:700; margin:2px 0 0;}
+  .seeker-topbar .top-icons{display:flex; align-items:center; gap:10px;}
+  .bell-btn{
+    position:relative; width:38px; height:38px; border-radius:50%;
+    background:rgba(255,255,255,.14); display:flex; align-items:center; justify-content:center;
+    border:none; color:#fff;
+  }
+  .bell-dot{
+    position:absolute; top:6px; right:7px; width:7px; height:7px; border-radius:50%;
+    background:var(--lime-400); border:1.5px solid var(--green-800);
+  }
+  .topbar-avatar{
+    width:38px; height:38px; border-radius:50%; background:var(--green-500);
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px;
+  }
+
+  .wallet-card{
+    margin-top:14px;
+    background:rgba(255,255,255,.1);
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:14px;
+    padding:13px 15px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .wallet-card .lbl{font-size:11.5px; color:rgba(255,255,255,.7);}
+  .wallet-card .val{font-family:var(--font-display); font-size:17px; font-weight:700; margin-top:2px;}
+  .wallet-card .soon{
+    font-size:10px; background:rgba(255,255,255,.16); padding:2px 7px; border-radius:10px; margin-left:6px; font-weight:600;
+  }
+
+  .search-bar{
+    margin-top:16px;
+    background:var(--white);
+    border-radius:14px;
+    padding:13px 14px;
+    display:flex; align-items:center; gap:10px;
+    color:#8a9a8e;
+    font-size:14px;
+    box-shadow:0 6px 18px -8px rgba(0,0,0,.25);
+  }
+  .search-bar svg{flex:none;}
+
+  .seeker-scroll{
+    flex:1;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:18px 18px calc(var(--safe-bottom) + 90px);
+    background:var(--mist);
+  }
+
+  .section-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+  .section-head h3{font-family:var(--font-display); font-size:15px; font-weight:700; color:var(--ink); margin:0;}
+  .section-head .see-all{font-size:12.5px; color:var(--green-600); font-weight:600; text-decoration:none;}
+
+  .cat-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:12px 8px;
+    margin-bottom:26px;
+  }
+  .cat-item{background:none; border:none; text-align:center; padding:0; cursor:pointer;}
+  .cat-icon{
+    width:52px; height:52px; border-radius:50%; margin:0 auto 6px;
+    background:#DFF3E4; display:flex; align-items:center; justify-content:center;
+    font-size:22px;
+  }
+  .cat-label{font-size:11.5px; color:#3f4f43; font-weight:600; line-height:1.25;}
+
+  .stat-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:8px;
+    background:var(--white); border-radius:14px; padding:14px 8px;
+    margin-bottom:22px;
+    box-shadow:0 1px 3px rgba(15,92,42,.06);
+  }
+  .stat-item{text-align:center;}
+  .stat-item .n{font-family:var(--font-display); font-size:19px; font-weight:700; color:var(--ink);}
+  .stat-item .l{font-size:10.5px; color:#8a9a8e; margin-top:2px; line-height:1.25;}
+
+  .promo-banner{
+    background:linear-gradient(135deg, var(--green-700), var(--green-900));
+    border-radius:16px; padding:18px;
+    color:#fff; margin-bottom:24px;
+    position:relative; overflow:hidden;
+  }
+  .promo-banner h4{font-family:var(--font-display); font-size:16px; margin:0 0 4px; line-height:1.3;}
+  .promo-banner h4 span{color:var(--lime-400);}
+  .promo-banner p{font-size:12px; margin:0; color:rgba(255,255,255,.8);}
+
+  .empty-state{
+    background:var(--white); border-radius:14px; padding:26px 18px;
+    text-align:center; margin-bottom:22px;
+    box-shadow:0 1px 3px rgba(15,92,42,.06);
+  }
+  .empty-state .ico{font-size:30px; margin-bottom:8px;}
+  .empty-state h4{font-family:var(--font-display); font-size:14.5px; margin:0 0 4px; color:var(--ink);}
+  .empty-state p{font-size:12.5px; color:#8a9a8e; margin:0 0 14px; line-height:1.5;}
+  .empty-state .btn-mini{
+    display:inline-block; background:var(--green-600); color:#fff;
+    font-size:12.5px; font-weight:700; padding:9px 18px; border-radius:10px; border:none;
+  }
+
+  .quick-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
+    margin-bottom:8px;
+  }
+  .quick-item{
+    background:var(--white); border-radius:12px; padding:14px 6px;
+    text-align:center; border:none;
+    box-shadow:0 1px 3px rgba(15,92,42,.06);
+  }
+  .quick-item .qi{font-size:20px; margin-bottom:6px;}
+  .quick-item .ql{font-size:10.5px; color:#3f4f43; font-weight:600;}
+
+  /* Bottom nav */
+  .bottom-nav{
+    flex:none;
+    display:flex; align-items:center; justify-content:space-around;
+    background:var(--white);
+    border-top:1px solid #EAF2EC;
+    padding:9px 4px calc(var(--safe-bottom) + 6px);
+    position:relative;
+    z-index:5;
+  }
+  .nav-item{
+    background:none; border:none; display:flex; flex-direction:column; align-items:center; gap:3px;
+    color:#9AAA9D; font-size:10px; font-weight:600; padding:4px 6px;
+  }
+  .nav-item.active{color:var(--green-600);}
+  .nav-item .ni{font-size:19px; line-height:1;}
+  .nav-fab{
+    width:52px; height:52px; border-radius:50%;
+    background:var(--green-600); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px; font-weight:400;
+    margin-top:-30px;
+    border:4px solid var(--white);
+    box-shadow:0 8px 16px -6px rgba(27,122,62,.5);
+  }
+
+  /* Account screen */
+  .account-card{
+    background:var(--white); border-radius:14px; padding:18px;
+    display:flex; align-items:center; gap:14px; margin-bottom:18px;
+    box-shadow:0 1px 3px rgba(15,92,42,.06);
+  }
+  .account-card .av{
+    width:56px; height:56px; border-radius:50%; background:var(--green-600); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; flex:none;
+  }
+  .account-card .nm{font-family:var(--font-display); font-size:16px; font-weight:700; color:var(--ink);}
+  .account-card .rl{font-size:12px; color:#8a9a8e; margin-top:2px;}
+  .account-list{
+    background:var(--white); border-radius:14px; overflow:hidden; margin-bottom:18px;
+    box-shadow:0 1px 3px rgba(15,92,42,.06);
+  }
+  .account-row{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 16px; border-bottom:1px solid #F1F6F2; font-size:13.5px; color:var(--ink);
+  }
+  .account-row:last-child{border-bottom:none;}
+  .account-row .k{color:#8a9a8e; font-size:12.5px;}
+  .btn-danger-outline{
+    width:100%; background:#fff; border:1.5px solid #F5C6C6; color:#D64545;
+    border-radius:12px; padding:14px; font-weight:700; font-size:14px;
+  }
+
+  /* Toast */
+  .toast{
+    position:fixed; left:50%; bottom:calc(var(--safe-bottom) + 92px);
+    transform:translate(-50%, 12px);
+    background:#1B2E20; color:#fff; font-size:13px;
+    padding:11px 18px; border-radius:30px;
+    opacity:0; pointer-events:none;
+    transition:opacity .25s var(--ease-standard), transform .25s var(--ease-standard);
+    z-index:50; white-space:nowrap;
+    box-shadow:0 10px 24px -8px rgba(0,0,0,.4);
+  }
+  .toast.show{opacity:1; transform:translate(-50%, 0);}
 </style>
 </head>
 <body>
@@ -664,35 +853,44 @@
   </section>
 
   <!-- ============================================================
-       DASHBOARD PLACEHOLDERS (per role — konten lengkap tahap berikutnya)
+       SEEKER DASHBOARD — shell (topbar + konten dinamis per tab + bottom nav)
        ============================================================ -->
-  <section class="stage-screen" id="dashSeeker">
-    <div class="dash-topbar">
-      <div class="who">
-        <div class="avatar" id="seekerAvatarInitial">?</div>
+  <section class="stage-screen seeker-shell" id="dashSeeker">
+    <div class="seeker-topbar">
+      <div class="seeker-topbar-row">
         <div>
-          <div class="name" id="seekerName">Pencari Jasa</div>
-          <span class="role-badge">Pencari Jasa</span>
+          <p class="greet-label" id="seekerGreetLabel">Selamat datang,</p>
+          <p class="greet-name" id="seekerName">Pencari Jasa</p>
+        </div>
+        <div class="top-icons">
+          <button class="bell-btn" type="button" data-toast="Notifikasi akan hadir di tahap berikutnya"><span class="bell-dot"></span>🔔</button>
+          <div class="topbar-avatar" id="seekerAvatarInitial">?</div>
         </div>
       </div>
-      <button class="btn-logout" data-logout>Keluar</button>
-    </div>
-    <div class="stage-body">
-      <div class="roadmap-card">
-        <h2>📋 Progres Tahap 23 — Full index.html v1.0</h2>
-        <ul class="roadmap-list">
-          <li><span class="step-badge done">✓</span> Fondasi PWA</li>
-          <li><span class="step-badge done">✓</span> Auth: Register / Login / Role Selection</li>
-          <li><span class="step-badge now">●</span> Seeker Dashboard</li>
-          <li class="dim"><span class="step-badge next">○</span> Provider Dashboard</li>
-          <li class="dim"><span class="step-badge next">○</span> Order System</li>
-          <li class="dim"><span class="step-badge next">○</span> Verification (Camera + GPS)</li>
-          <li class="dim"><span class="step-badge next">○</span> Payment, Dispute, Admin, Realtime</li>
-        </ul>
+      <div class="wallet-card">
+        <div>
+          <div class="lbl">Saldo JasaKu <span class="soon">segera hadir</span></div>
+          <div class="val">Rp0</div>
+        </div>
       </div>
-      <p class="status-note">Login berhasil sebagai <b>Pencari Jasa</b> ✓ Dashboard cari-jasa lengkap (kategori, cari tukang, pesanan) dibangun di tahap berikutnya.</p>
+      <button class="search-bar" type="button" data-toast="Cari layanan/tukang dibangun di tahap Order System" style="width:100%;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a9a8e" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <span>Cari layanan atau tukang</span>
+      </button>
     </div>
+
+    <div class="seeker-scroll" id="seekerContent"><!-- dirender oleh JS: renderSeekerHome() dst --></div>
+
+    <nav class="bottom-nav">
+      <button class="nav-item" data-seeker-tab="home"><span class="ni">🏠</span>Dashboard</button>
+      <button class="nav-item" data-seeker-tab="pesanan"><span class="ni">📋</span>Pesanan</button>
+      <button class="nav-item" data-seeker-tab="pesanjasa"><div class="nav-fab">+</div></button>
+      <button class="nav-item" data-seeker-tab="chat"><span class="ni">💬</span>Chat</button>
+      <button class="nav-item" data-seeker-tab="akun"><span class="ni">👤</span>Akun</button>
+    </nav>
   </section>
+
+  <div class="toast" id="toast"></div>
 
   <section class="stage-screen" id="dashProvider">
     <div class="dash-topbar">
@@ -711,6 +909,7 @@
         <ul class="roadmap-list">
           <li><span class="step-badge done">✓</span> Fondasi PWA</li>
           <li><span class="step-badge done">✓</span> Auth: Register / Login / Role Selection</li>
+          <li><span class="step-badge done">✓</span> Seeker Dashboard</li>
           <li><span class="step-badge now">●</span> Provider Dashboard</li>
           <li class="dim"><span class="step-badge next">○</span> Order System</li>
           <li class="dim"><span class="step-badge next">○</span> Verification (Camera + GPS)</li>
@@ -738,7 +937,8 @@
         <ul class="roadmap-list">
           <li><span class="step-badge done">✓</span> Fondasi PWA</li>
           <li><span class="step-badge done">✓</span> Auth: Register / Login / Role Selection</li>
-          <li class="dim"><span class="step-badge next">○</span> Seeker &amp; Provider Dashboard</li>
+          <li><span class="step-badge done">✓</span> Seeker Dashboard</li>
+          <li class="dim"><span class="step-badge next">○</span> Provider Dashboard</li>
           <li class="dim"><span class="step-badge next">○</span> Order System</li>
           <li><span class="step-badge now">●</span> Admin Command Center</li>
           <li class="dim"><span class="step-badge next">○</span> Payment, Dispute, Realtime</li>
@@ -844,12 +1044,144 @@ function showDashboard(role) {
   if (nameEl) nameEl.textContent = fullName;
   if (avatarEl) avatarEl.textContent = fullName.trim().charAt(0).toUpperCase() || '?';
 
+  if (role === 'seeker') switchSeekerTab('home');
+
   setTimeout(() => document.getElementById(map[role]).classList.add('active'), 300);
 }
 
 /* ============================================================
-   SPLASH SEQUENCE → cek sesi login yang tersimpan
+   SEEKER DASHBOARD — tab switching, content templates, toast
    ============================================================ */
+const SEEKER_CATEGORIES = [
+  { icon: '⚡', label: 'Listrik' },
+  { icon: '🔧', label: 'Pipa & Saluran' },
+  { icon: '❄️', label: 'AC' },
+  { icon: '🎨', label: 'Cat & Renovasi' },
+  { icon: '🧹', label: 'Kebersihan' },
+  { icon: '⋯', label: 'Lainnya' },
+];
+
+function showToast(message) {
+  const el = document.getElementById('toast');
+  el.textContent = message;
+  el.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+function switchSeekerTab(tab) {
+  document.querySelectorAll('#dashSeeker .nav-item').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.seekerTab === tab);
+  });
+
+  if (tab === 'pesanjasa') {
+    showToast('Pesan jasa baru dibangun di tahap Order System 🚧');
+    switchSeekerTab('home');
+    return;
+  }
+
+  const content = document.getElementById('seekerContent');
+  if (tab === 'home') content.innerHTML = renderSeekerHome();
+  else if (tab === 'pesanan') content.innerHTML = renderSeekerPesanan();
+  else if (tab === 'chat') content.innerHTML = renderSeekerChat();
+  else if (tab === 'akun') content.innerHTML = renderSeekerAkun();
+
+  content.scrollTop = 0;
+}
+
+function renderSeekerHome() {
+  const catHtml = SEEKER_CATEGORIES.map((c) =>
+    `<button class="cat-item" data-toast="Kategori ${c.label} — cari tukang dibangun di tahap Order System">
+       <div class="cat-icon">${c.icon}</div>
+       <div class="cat-label">${c.label}</div>
+     </button>`
+  ).join('');
+
+  return `
+    <div class="section-head"><h3>Kategori Populer</h3></div>
+    <div class="cat-grid">${catHtml}</div>
+
+    <div class="section-head"><h3>Status Pesanan Anda</h3></div>
+    <div class="stat-grid">
+      <div class="stat-item"><div class="n">0</div><div class="l">Menunggu<br>Konfirmasi</div></div>
+      <div class="stat-item"><div class="n">0</div><div class="l">Sedang<br>Dikerjakan</div></div>
+      <div class="stat-item"><div class="n">0</div><div class="l">Selesai</div></div>
+      <div class="stat-item"><div class="n">0</div><div class="l">Dibatalkan</div></div>
+    </div>
+
+    <div class="promo-banner">
+      <h4>Cari Tukang <span>Mudah,</span><br>Cepat dan Terpercaya</h4>
+      <p>Semua kebutuhan rumah ada di JasaKu!</p>
+    </div>
+
+    <div class="section-head"><h3>Pesanan Terakhir</h3></div>
+    <div class="empty-state">
+      <div class="ico">🧰</div>
+      <h4>Belum ada pesanan</h4>
+      <p>Yuk cari tukang pertama kamu di JasaKu Solo.</p>
+      <button class="btn-mini" data-toast="Cari &amp; pesan tukang dibangun di tahap Order System">Cari Jasa</button>
+    </div>
+  `;
+}
+
+function renderSeekerPesanan() {
+  return `
+    <div class="section-head"><h3>Pesanan Saya</h3></div>
+    <div class="empty-state">
+      <div class="ico">📋</div>
+      <h4>Belum ada pesanan</h4>
+      <p>Riwayat pesanan kamu akan muncul di sini setelah fitur Order System dibangun.</p>
+    </div>
+  `;
+}
+
+function renderSeekerChat() {
+  return `
+    <div class="section-head"><h3>Chat</h3></div>
+    <div class="empty-state">
+      <div class="ico">💬</div>
+      <h4>Belum ada percakapan</h4>
+      <p>Chat dengan tukang akan tersedia setelah fitur Order System &amp; Realtime dibangun.</p>
+    </div>
+  `;
+}
+
+function renderSeekerAkun() {
+  const p = AppState.profile || {};
+  const fullName = p.full_name || 'Pengguna';
+  const initial = fullName.trim().charAt(0).toUpperCase() || '?';
+  return `
+    <div class="account-card">
+      <div class="av">${initial}</div>
+      <div>
+        <div class="nm">${escapeHtml(fullName)}</div>
+        <div class="rl">Pencari Jasa · Akun Terverifikasi</div>
+      </div>
+    </div>
+    <div class="account-list">
+      <div class="account-row"><span class="k">Email</span><span>${escapeHtml(AppState.session?.user?.email || '-')}</span></div>
+      <div class="account-row"><span class="k">Nomor HP</span><span>${escapeHtml(p.phone || '-')}</span></div>
+      <div class="account-row"><span class="k">Role</span><span>Pencari Jasa</span></div>
+    </div>
+    <button class="btn-danger-outline" data-logout>Keluar dari Akun</button>
+  `;
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (m) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[m]));
+}
+
+document.getElementById('dashSeeker').addEventListener('click', (e) => {
+  const tabBtn = e.target.closest('[data-seeker-tab]');
+  if (tabBtn) { switchSeekerTab(tabBtn.dataset.seekerTab); return; }
+
+  const toastBtn = e.target.closest('[data-toast]');
+  if (toastBtn) { showToast(toastBtn.dataset.toast); }
+});
+
+
 function runSplashSequence() {
   const statusEl = document.getElementById('splashStatus');
   const messages = ['Menyiapkan aplikasi…', 'Memeriksa sesi login…', 'Hampir siap…'];
