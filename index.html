@@ -666,6 +666,93 @@
     box-shadow:0 10px 24px -8px rgba(0,0,0,.4);
   }
   .toast.show{opacity:1; transform:translate(-50%, 0);}
+
+  /* ============================================================
+     7. PROVIDER DASHBOARD
+     ============================================================ */
+  .prov-topbar{
+    flex:none;
+    padding:calc(var(--safe-top) + 16px) 18px 18px;
+    background:var(--green-800); color:var(--white);
+  }
+  .prov-badges{display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;}
+  .verify-badge{
+    display:inline-flex; align-items:center; gap:5px;
+    background:rgba(255,255,255,.14); font-size:11px; font-weight:600;
+    padding:4px 10px; border-radius:20px;
+  }
+  .rating-badge{
+    display:inline-flex; align-items:center; gap:4px;
+    font-size:12px; font-weight:700; color:var(--lime-400);
+  }
+
+  .status-card{
+    margin-top:14px;
+    background:rgba(255,255,255,.1);
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:14px;
+    padding:13px 15px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .status-card .lbl{font-size:11.5px; color:rgba(255,255,255,.7);}
+  .status-card .val{font-family:var(--font-display); font-size:16px; font-weight:700; margin-top:2px;}
+  .status-card .sub{font-size:11px; color:rgba(255,255,255,.65); margin-top:1px;}
+
+  .toggle-switch{
+    position:relative; width:46px; height:26px; flex:none;
+    background:rgba(255,255,255,.25); border-radius:20px; border:none;
+    cursor:pointer; transition:background .2s;
+  }
+  .toggle-switch.on{background:var(--lime-400);}
+  .toggle-switch .knob{
+    position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%;
+    background:#fff; transition:transform .2s var(--ease-standard);
+    box-shadow:0 2px 4px rgba(0,0,0,.25);
+  }
+  .toggle-switch.on .knob{transform:translateX(20px);}
+
+  .stat-grid-5{
+    display:grid; grid-template-columns:repeat(5,1fr); gap:6px;
+    background:var(--white); border-radius:14px; padding:14px 6px;
+    margin-bottom:22px;
+    box-shadow:0 1px 3px rgba(15,92,42,.06);
+  }
+  .stat-grid-5 .stat-item .n{font-size:16px;}
+  .stat-grid-5 .stat-item .l{font-size:9.5px;}
+
+  .order-item{
+    background:var(--white); border-radius:14px; padding:14px;
+    display:flex; align-items:center; gap:12px; margin-bottom:10px;
+    box-shadow:0 1px 3px rgba(15,92,42,.06);
+  }
+  .order-item .oi-icon{
+    width:44px; height:44px; border-radius:12px; background:var(--mist);
+    display:flex; align-items:center; justify-content:center; font-size:20px; flex:none;
+  }
+  .order-item .oi-title{font-size:13.5px; font-weight:700; color:var(--ink);}
+  .order-item .oi-sub{font-size:11.5px; color:#8a9a8e; margin-top:2px;}
+  .order-badge{
+    font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px;
+    background:#FFF1DB; color:#B5760F; display:inline-block; margin-bottom:3px;
+  }
+
+  .earnings-card{
+    background:linear-gradient(135deg, var(--green-700), var(--green-900));
+    border-radius:16px; padding:18px; color:#fff; margin-bottom:22px;
+  }
+  .earnings-card .eh{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+  .earnings-card .eh h4{font-family:var(--font-display); font-size:14px; margin:0;}
+  .earnings-row{display:flex; justify-content:space-between; gap:10px;}
+  .earnings-row .ev{font-family:var(--font-display); font-size:17px; font-weight:700;}
+  .earnings-row .el{font-size:10.5px; color:rgba(255,255,255,.7); margin-top:2px;}
+
+  .complete-profile-banner{
+    background:#FFF7E8; border:1px solid #F5E2B8; border-radius:14px;
+    padding:14px 16px; display:flex; align-items:center; gap:12px; margin-bottom:8px;
+  }
+  .complete-profile-banner .cpb-ico{font-size:26px; flex:none;}
+  .complete-profile-banner h5{font-size:13px; margin:0 0 2px; color:var(--ink);}
+  .complete-profile-banner p{font-size:11.5px; color:#8a7a4a; margin:0 0 8px; line-height:1.4;}
 </style>
 </head>
 <body>
@@ -892,32 +979,40 @@
 
   <div class="toast" id="toast"></div>
 
-  <section class="stage-screen" id="dashProvider">
-    <div class="dash-topbar">
-      <div class="who">
-        <div class="avatar" id="providerAvatarInitial">?</div>
+  <section class="stage-screen seeker-shell" id="dashProvider">
+    <div class="prov-topbar">
+      <div class="seeker-topbar-row">
         <div>
-          <div class="name" id="providerName">Penyedia Jasa</div>
-          <span class="role-badge">Penyedia Jasa</span>
+          <p class="greet-label">Selamat datang kembali,</p>
+          <p class="greet-name" id="providerName">Penyedia Jasa</p>
+          <div class="prov-badges">
+            <span class="verify-badge">🛡️ Akun Terverifikasi</span>
+          </div>
+        </div>
+        <div class="top-icons">
+          <button class="bell-btn" type="button" data-toast="Notifikasi akan hadir di tahap berikutnya"><span class="bell-dot"></span>🔔</button>
+          <div class="topbar-avatar" id="providerAvatarInitial">?</div>
         </div>
       </div>
-      <button class="btn-logout" data-logout>Keluar</button>
-    </div>
-    <div class="stage-body">
-      <div class="roadmap-card">
-        <h2>📋 Progres Tahap 23 — Full index.html v1.0</h2>
-        <ul class="roadmap-list">
-          <li><span class="step-badge done">✓</span> Fondasi PWA</li>
-          <li><span class="step-badge done">✓</span> Auth: Register / Login / Role Selection</li>
-          <li><span class="step-badge done">✓</span> Seeker Dashboard</li>
-          <li><span class="step-badge now">●</span> Provider Dashboard</li>
-          <li class="dim"><span class="step-badge next">○</span> Order System</li>
-          <li class="dim"><span class="step-badge next">○</span> Verification (Camera + GPS)</li>
-          <li class="dim"><span class="step-badge next">○</span> Payment, Dispute, Admin, Realtime</li>
-        </ul>
+      <div class="status-card">
+        <div>
+          <div class="lbl">Status Anda</div>
+          <div class="val" id="availabilityLabel">Tersedia</div>
+          <div class="sub">Siap menerima pekerjaan</div>
+        </div>
+        <button class="toggle-switch on" id="availabilityToggle" type="button"><span class="knob"></span></button>
       </div>
-      <p class="status-note">Login berhasil sebagai <b>Penyedia Jasa</b> ✓ Dashboard terima-order, status tersedia, dan pendapatan dibangun di tahap berikutnya.</p>
     </div>
+
+    <div class="seeker-scroll" id="providerContent"><!-- dirender oleh JS: renderProviderHome() dst --></div>
+
+    <nav class="bottom-nav">
+      <button class="nav-item" data-provider-tab="home"><span class="ni">🏠</span>Dashboard</button>
+      <button class="nav-item" data-provider-tab="pesanan"><span class="ni">📋</span>Pesanan</button>
+      <button class="nav-item" data-provider-tab="ambilorder"><div class="nav-fab">+</div></button>
+      <button class="nav-item" data-provider-tab="chat"><span class="ni">💬</span>Chat</button>
+      <button class="nav-item" data-provider-tab="profil"><span class="ni">👤</span>Profil</button>
+    </nav>
   </section>
 
   <section class="stage-screen" id="dashAdmin">
@@ -938,7 +1033,7 @@
           <li><span class="step-badge done">✓</span> Fondasi PWA</li>
           <li><span class="step-badge done">✓</span> Auth: Register / Login / Role Selection</li>
           <li><span class="step-badge done">✓</span> Seeker Dashboard</li>
-          <li class="dim"><span class="step-badge next">○</span> Provider Dashboard</li>
+          <li><span class="step-badge done">✓</span> Provider Dashboard</li>
           <li class="dim"><span class="step-badge next">○</span> Order System</li>
           <li><span class="step-badge now">●</span> Admin Command Center</li>
           <li class="dim"><span class="step-badge next">○</span> Payment, Dispute, Realtime</li>
@@ -1045,6 +1140,13 @@ function showDashboard(role) {
   if (avatarEl) avatarEl.textContent = fullName.trim().charAt(0).toUpperCase() || '?';
 
   if (role === 'seeker') switchSeekerTab('home');
+  if (role === 'provider') {
+    const isAvailable = AppState.profile ? AppState.profile.is_available !== false : true;
+    const toggleBtn = document.getElementById('availabilityToggle');
+    toggleBtn.classList.toggle('on', isAvailable);
+    document.getElementById('availabilityLabel').textContent = isAvailable ? 'Tersedia' : 'Tidak Tersedia';
+    switchProviderTab('home');
+  }
 
   setTimeout(() => document.getElementById(map[role]).classList.add('active'), 300);
 }
@@ -1181,9 +1283,151 @@ document.getElementById('dashSeeker').addEventListener('click', (e) => {
   if (toastBtn) { showToast(toastBtn.dataset.toast); }
 });
 
+/* ============================================================
+   PROVIDER DASHBOARD — tab switching, content templates, status toggle
+   ============================================================ */
+function switchProviderTab(tab) {
+  document.querySelectorAll('#dashProvider .nav-item').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.providerTab === tab);
+  });
+
+  if (tab === 'ambilorder') {
+    showToast('Order masuk otomatis setelah tahap Order System dibangun 🚧');
+    switchProviderTab('home');
+    return;
+  }
+
+  const content = document.getElementById('providerContent');
+  if (tab === 'home') content.innerHTML = renderProviderHome();
+  else if (tab === 'pesanan') content.innerHTML = renderProviderPesanan();
+  else if (tab === 'chat') content.innerHTML = renderProviderChat();
+  else if (tab === 'profil') content.innerHTML = renderProviderProfil();
+
+  content.scrollTop = 0;
+}
+
+function renderProviderHome() {
+  return `
+    <div class="section-head"><h3>Ringkasan Hari Ini</h3></div>
+    <div class="stat-grid-5">
+      <div class="stat-item"><div class="n">0</div><div class="l">Pesanan<br>Baru</div></div>
+      <div class="stat-item"><div class="n">0</div><div class="l">Pesanan<br>Aktif</div></div>
+      <div class="stat-item"><div class="n">0</div><div class="l">Selesai<br>Hari Ini</div></div>
+      <div class="stat-item"><div class="n">–</div><div class="l">Rating<br>Saya</div></div>
+      <div class="stat-item"><div class="n">Rp0</div><div class="l">Pendapatan<br>Hari Ini</div></div>
+    </div>
+
+    <div class="section-head"><h3>Pesanan Terbaru</h3></div>
+    <div class="empty-state">
+      <div class="ico">📥</div>
+      <h4>Belum ada pesanan masuk</h4>
+      <p>Pesanan dari Pencari Jasa akan muncul di sini setelah tahap Order System dibangun.</p>
+    </div>
+
+    <div class="section-head"><h3>Aksi Cepat</h3></div>
+    <div class="quick-grid" style="margin-bottom:22px;">
+      <button class="quick-item" data-provider-tab="pesanan"><div class="qi">📋</div><div class="ql">Pesanan</div></button>
+      <button class="quick-item" data-toast="Fitur jadwal dibangun di tahap berikutnya"><div class="qi">📅</div><div class="ql">Jadwal</div></button>
+      <button class="quick-item" data-toast="Pendapatan tersimpan setelah Order &amp; Payment dibangun"><div class="qi">💰</div><div class="ql">Pendapatan</div></button>
+      <button class="quick-item" data-provider-tab="profil"><div class="qi">👤</div><div class="ql">Profil Saya</div></button>
+    </div>
+
+    <div class="earnings-card">
+      <div class="eh"><h4>Ringkasan Pendapatan</h4></div>
+      <div class="earnings-row">
+        <div><div class="ev">Rp0</div><div class="el">Total Pendapatan</div></div>
+        <div><div class="ev">0</div><div class="el">Selesai</div></div>
+        <div><div class="ev">–</div><div class="el">Rata-rata Rating</div></div>
+      </div>
+    </div>
+
+    <div class="complete-profile-banner">
+      <div class="cpb-ico">🛠️</div>
+      <div>
+        <h5>Lengkapi Profil &amp; Verifikasi</h5>
+        <p>Verifikasi Kamera + GPS &amp; KTP (Super Verified) dibangun di tahap berikutnya, biar dapat lebih banyak kepercayaan pencari jasa.</p>
+      </div>
+    </div>
+  `;
+}
+
+function renderProviderPesanan() {
+  return `
+    <div class="section-head"><h3>Pesanan Saya</h3></div>
+    <div class="empty-state">
+      <div class="ico">📋</div>
+      <h4>Belum ada pesanan</h4>
+      <p>Riwayat terima/kerjakan pesanan akan muncul di sini setelah fitur Order System dibangun.</p>
+    </div>
+  `;
+}
+
+function renderProviderChat() {
+  return `
+    <div class="section-head"><h3>Chat</h3></div>
+    <div class="empty-state">
+      <div class="ico">💬</div>
+      <h4>Belum ada percakapan</h4>
+      <p>Chat dengan pencari jasa akan tersedia setelah fitur Order System &amp; Realtime dibangun.</p>
+    </div>
+  `;
+}
+
+function renderProviderProfil() {
+  const p = AppState.profile || {};
+  const fullName = p.full_name || 'Pengguna';
+  const initial = fullName.trim().charAt(0).toUpperCase() || '?';
+  return `
+    <div class="account-card">
+      <div class="av">${initial}</div>
+      <div>
+        <div class="nm">${escapeHtml(fullName)}</div>
+        <div class="rl">Penyedia Jasa · Akun Terverifikasi</div>
+      </div>
+    </div>
+    <div class="account-list">
+      <div class="account-row"><span class="k">Email</span><span>${escapeHtml(AppState.session?.user?.email || '-')}</span></div>
+      <div class="account-row"><span class="k">Nomor HP</span><span>${escapeHtml(p.phone || '-')}</span></div>
+      <div class="account-row"><span class="k">Role</span><span>Penyedia Jasa</span></div>
+      <div class="account-row"><span class="k">Status</span><span>${p.is_available ? 'Tersedia' : 'Tidak Tersedia'}</span></div>
+    </div>
+    <button class="btn-danger-outline" data-logout>Keluar dari Akun</button>
+  `;
+}
+
+document.getElementById('dashProvider').addEventListener('click', (e) => {
+  const tabBtn = e.target.closest('[data-provider-tab]');
+  if (tabBtn) { switchProviderTab(tabBtn.dataset.providerTab); return; }
+
+  const toastBtn = e.target.closest('[data-toast]');
+  if (toastBtn) { showToast(toastBtn.dataset.toast); }
+});
+
+/* Toggle status Tersedia/Tidak Tersedia — beneran tersimpan ke database */
+document.getElementById('availabilityToggle').addEventListener('click', async (e) => {
+  const btn = e.currentTarget;
+  const newValue = !btn.classList.contains('on');
+  btn.classList.toggle('on', newValue);
+  document.getElementById('availabilityLabel').textContent = newValue ? 'Tersedia' : 'Tidak Tersedia';
+
+  const userId = AppState.session?.user?.id;
+  if (!userId) return;
+
+  const { error } = await sb.from('profiles').update({ is_available: newValue }).eq('id', userId);
+  if (error) {
+    // rollback UI kalau gagal simpan
+    btn.classList.toggle('on', !newValue);
+    document.getElementById('availabilityLabel').textContent = !newValue ? 'Tersedia' : 'Tidak Tersedia';
+    showToast('Gagal menyimpan status. Coba lagi.');
+  } else {
+    if (AppState.profile) AppState.profile.is_available = newValue;
+  }
+});
+
 
 function runSplashSequence() {
   const statusEl = document.getElementById('splashStatus');
+
   const messages = ['Menyiapkan aplikasi…', 'Memeriksa sesi login…', 'Hampir siap…'];
   let i = 0;
   const interval = setInterval(() => {
@@ -1215,7 +1459,7 @@ async function resolveInitialRoute() {
    ============================================================ */
 async function loadProfileAndRole(userId) {
   const [{ data: profile, error: pErr }, { data: roleRow, error: rErr }] = await Promise.all([
-    sb.from('profiles').select('id, full_name, phone, avatar_url').eq('id', userId).single(),
+    sb.from('profiles').select('id, full_name, phone, avatar_url, is_available').eq('id', userId).single(),
     sb.from('user_roles').select('role').eq('user_id', userId).single(),
   ]);
   if (pErr || rErr) {
