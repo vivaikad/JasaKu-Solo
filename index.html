@@ -1381,6 +1381,13 @@ const ORDER_STATUS_LABEL = {
   completed: 'Selesai',
   cancelled: 'Dibatalkan',
 };
+const PAYMENT_STATUS_LABEL = { unpaid: 'Belum Dibayar', paid: 'Sudah Dibayar' };
+
+function paymentBadgeHtml(order) {
+  if (order.status !== 'completed') return '';
+  const cls = order.payment_status === 'paid' ? 'completed' : 'pending';
+  return `<span class="status-pill ${cls}" style="margin-left:6px;">${PAYMENT_STATUS_LABEL[order.payment_status] || 'Belum Dibayar'}</span>`;
+}
 
 function showToast(message) {
   const el = document.getElementById('toast');
@@ -1463,7 +1470,7 @@ async function loadSeekerHome(content) {
   const userId = AppState.session?.user?.id;
   const { data: orders, error } = await sb
     .from('orders')
-    .select('id, category, status, price, created_at, provider_id')
+    .select('id, category, status, price, created_at, provider_id, payment_status, payment_method')
     .eq('seeker_id', userId)
     .order('created_at', { ascending: false });
 
@@ -1501,7 +1508,7 @@ async function loadSeekerHome(content) {
       <div class="order-list-item">
         <div class="oli-top">
           <span class="oli-title">${escapeHtml(o.category)}</span>
-          <span class="status-pill ${o.status}">${ORDER_STATUS_LABEL[o.status]}</span>
+          <span>${`<span class="status-pill ${o.status}">${ORDER_STATUS_LABEL[o.status]}</span>` + paymentBadgeHtml(o)}</span>
         </div>
         <div class="oli-sub">oleh ${escapeHtml(provName)} · ${new Date(o.created_at).toLocaleDateString('id-ID')}</div>
         <div class="oli-price">${formatRupiah(o.price)}</div>
@@ -1516,7 +1523,7 @@ async function loadSeekerPesanan(content) {
   const userId = AppState.session?.user?.id;
   const { data: orders, error } = await sb
     .from('orders')
-    .select('id, category, status, price, note, created_at, provider_id')
+    .select('id, category, status, price, note, created_at, provider_id, payment_status, payment_method')
     .eq('seeker_id', userId)
     .order('created_at', { ascending: false });
 
@@ -1541,14 +1548,18 @@ async function loadSeekerPesanan(content) {
     const cancelBtn = o.status === 'pending'
       ? `<div class="oli-actions"><button class="btn-oli danger" data-cancel-order="${o.id}">Batalkan Pesanan</button></div>`
       : '';
+    const codNote = o.status === 'completed' && o.payment_status === 'unpaid'
+      ? `<div class="verif-reject-note" style="background:#FFF7E8;border-color:#F5E2B8;color:#8a7a4a;margin-top:8px;">Bayar tunai (COD) langsung ke tukang. Tukang akan menandai "Sudah Dibayar" setelah menerima.</div>`
+      : '';
     return `
       <div class="order-list-item">
         <div class="oli-top">
           <span class="oli-title">${escapeHtml(o.category)}</span>
-          <span class="status-pill ${o.status}">${ORDER_STATUS_LABEL[o.status]}</span>
+          <span>${`<span class="status-pill ${o.status}">${ORDER_STATUS_LABEL[o.status]}</span>` + paymentBadgeHtml(o)}</span>
         </div>
         <div class="oli-sub">Tukang: ${escapeHtml(provName)} · ${new Date(o.created_at).toLocaleDateString('id-ID')}${o.note ? ' · "' + escapeHtml(o.note) + '"' : ''}</div>
         <div class="oli-price">${formatRupiah(o.price)}</div>
+        ${codNote}
         ${cancelBtn}
       </div>`;
   }).join('');
@@ -1657,6 +1668,21 @@ function openOrderModal(service) {
       Perkiraan biaya: ${formatRupiah(service.price)}
     </div>
     <div class="field">
+      <label>Metode Pembayaran</label>
+      <div class="role-picker" style="margin-bottom:0;">
+        <div class="role-card selected">
+          <span class="emoji">💵</span>
+          <div class="label">Bayar di Tempat</div>
+          <div class="desc">Tunai ke tukang setelah selesai</div>
+        </div>
+        <div class="role-card" style="opacity:.5; cursor:not-allowed;">
+          <span class="emoji">💳</span>
+          <div class="label">Pembayaran Online</div>
+          <div class="desc">Segera hadir</div>
+        </div>
+      </div>
+    </div>
+    <div class="field">
       <label>Catatan untuk Tukang (opsional)</label>
       <div class="input-wrap" style="align-items:flex-start;">
         <textarea class="textarea-field" id="orderNote" placeholder="Contoh: alamat lengkap, jadwal yang diinginkan, detail kerusakan..."></textarea>
@@ -1682,6 +1708,8 @@ function openOrderModal(service) {
       note: note || null,
       price: service.price,
       status: 'pending',
+      payment_method: 'cod',
+      payment_status: 'unpaid',
     });
 
     if (error) {
@@ -1777,7 +1805,7 @@ async function loadProviderHome(content) {
   const userId = AppState.session?.user?.id;
   const { data: orders, error } = await sb
     .from('orders')
-    .select('id, category, status, price, created_at, updated_at, seeker_id')
+    .select('id, category, status, price, created_at, updated_at, seeker_id, payment_status, payment_method')
     .eq('provider_id', userId)
     .order('created_at', { ascending: false });
 
@@ -1799,8 +1827,11 @@ async function loadProviderHome(content) {
   const activeCount = orders.filter((o) => o.status === 'accepted' || o.status === 'in_progress').length;
   const completedToday = orders.filter((o) => o.status === 'completed' && isToday(o.updated_at));
   const completedAll = orders.filter((o) => o.status === 'completed');
-  const earningsToday = completedToday.reduce((sum, o) => sum + (Number(o.price) || 0), 0);
-  const earningsTotal = completedAll.reduce((sum, o) => sum + (Number(o.price) || 0), 0);
+  const paidToday = completedToday.filter((o) => o.payment_status === 'paid');
+  const paidAll = completedAll.filter((o) => o.payment_status === 'paid');
+  const earningsToday = paidToday.reduce((sum, o) => sum + (Number(o.price) || 0), 0);
+  const earningsTotal = paidAll.reduce((sum, o) => sum + (Number(o.price) || 0), 0);
+  const unpaidCount = completedAll.length - paidAll.length;
 
   statGrid.innerHTML = `
     <div class="stat-item"><div class="n">${pendingCount}</div><div class="l">Pesanan<br>Baru</div></div>
@@ -1813,9 +1844,9 @@ async function loadProviderHome(content) {
   earningsCard.innerHTML = `
     <div class="eh"><h4>Ringkasan Pendapatan</h4></div>
     <div class="earnings-row">
-      <div><div class="ev">${formatRupiah(earningsTotal)}</div><div class="el">Total Pendapatan</div></div>
-      <div><div class="ev">${completedAll.length}</div><div class="el">Selesai</div></div>
-      <div><div class="ev">–</div><div class="el">Rata-rata Rating</div></div>
+      <div><div class="ev">${formatRupiah(earningsTotal)}</div><div class="el">Total Diterima</div></div>
+      <div><div class="ev">${paidAll.length}</div><div class="el">Sudah Dibayar</div></div>
+      <div><div class="ev">${unpaidCount}</div><div class="el">Belum Dibayar</div></div>
     </div>
   `;
 
@@ -1836,7 +1867,7 @@ async function loadProviderHome(content) {
       <div class="order-list-item">
         <div class="oli-top">
           <span class="oli-title">${escapeHtml(o.category)}</span>
-          <span class="status-pill ${o.status}">${ORDER_STATUS_LABEL[o.status]}</span>
+          <span>${`<span class="status-pill ${o.status}">${ORDER_STATUS_LABEL[o.status]}</span>` + paymentBadgeHtml(o)}</span>
         </div>
         <div class="oli-sub">dari ${escapeHtml(seekerName)} · ${new Date(o.created_at).toLocaleDateString('id-ID')}</div>
         <div class="oli-price">${formatRupiah(o.price)}</div>
@@ -1850,7 +1881,7 @@ async function loadProviderPesanan(content) {
   const userId = AppState.session?.user?.id;
   const { data: orders, error } = await sb
     .from('orders')
-    .select('id, category, status, price, note, created_at, seeker_id')
+    .select('id, category, status, price, note, created_at, seeker_id, payment_status, payment_method')
     .eq('provider_id', userId)
     .order('created_at', { ascending: false });
 
@@ -1882,12 +1913,14 @@ async function loadProviderPesanan(content) {
       actions = `<div class="oli-actions"><button class="btn-oli primary" data-order-action='{"id":"${o.id}","status":"in_progress"}'>Mulai Kerjakan</button></div>`;
     } else if (o.status === 'in_progress') {
       actions = `<div class="oli-actions"><button class="btn-oli primary" data-order-action='{"id":"${o.id}","status":"completed"}'>Tandai Selesai</button></div>`;
+    } else if (o.status === 'completed' && o.payment_status === 'unpaid') {
+      actions = `<div class="oli-actions"><button class="btn-oli primary" data-mark-paid="${o.id}">💵 Tandai Sudah Dibayar (COD)</button></div>`;
     }
     return `
       <div class="order-list-item">
         <div class="oli-top">
           <span class="oli-title">${escapeHtml(o.category)}</span>
-          <span class="status-pill ${o.status}">${ORDER_STATUS_LABEL[o.status]}</span>
+          <span>${`<span class="status-pill ${o.status}">${ORDER_STATUS_LABEL[o.status]}</span>` + paymentBadgeHtml(o)}</span>
         </div>
         <div class="oli-sub">dari ${escapeHtml(seekerName)} · ${new Date(o.created_at).toLocaleDateString('id-ID')}${o.note ? ' · "' + escapeHtml(o.note) + '"' : ''}</div>
         <div class="oli-price">${formatRupiah(o.price)}</div>
@@ -1902,6 +1935,13 @@ async function updateOrderStatus(orderId, status) {
   const { error } = await sb.from('orders').update({ status, updated_at: new Date().toISOString() }).eq('id', orderId);
   if (error) { showToast('Gagal memperbarui pesanan.'); return; }
   showToast('Status pesanan diperbarui ✓');
+  loadProviderPesanan(document.getElementById('providerContent'));
+}
+
+async function markOrderPaid(orderId) {
+  const { error } = await sb.from('orders').update({ payment_status: 'paid' }).eq('id', orderId);
+  if (error) { showToast('Gagal menandai pembayaran.'); return; }
+  showToast('Pembayaran ditandai diterima ✓');
   loadProviderPesanan(document.getElementById('providerContent'));
 }
 
@@ -2300,6 +2340,9 @@ document.getElementById('dashProvider').addEventListener('click', (e) => {
     return;
   }
 
+  const markPaidBtn = e.target.closest('[data-mark-paid]');
+  if (markPaidBtn) { markOrderPaid(markPaidBtn.dataset.markPaid); return; }
+
   const deleteBtn = e.target.closest('[data-delete-service]');
   if (deleteBtn) { deleteMyService(deleteBtn.dataset.deleteService); return; }
 
@@ -2349,7 +2392,7 @@ async function loadAdminRingkasan(content) {
   const [{ count: totalUsers }, { data: rolesData }, { data: ordersData }, { count: pendingVerif }] = await Promise.all([
     sb.from('profiles').select('id', { count: 'exact', head: true }),
     sb.from('user_roles').select('role'),
-    sb.from('orders').select('status'),
+    sb.from('orders').select('status, price, payment_status'),
     sb.from('provider_verifications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
   ]);
 
@@ -2357,6 +2400,9 @@ async function loadAdminRingkasan(content) {
   const seekerCount = (rolesData || []).filter((r) => r.role === 'seeker').length;
   const totalOrders = (ordersData || []).length;
   const completedOrders = (ordersData || []).filter((o) => o.status === 'completed').length;
+  const totalPaidValue = (ordersData || [])
+    .filter((o) => o.status === 'completed' && o.payment_status === 'paid')
+    .reduce((sum, o) => sum + (Number(o.price) || 0), 0);
 
   content.innerHTML = `
     <div class="section-head"><h3>Ringkasan Platform</h3></div>
@@ -2367,8 +2413,9 @@ async function loadAdminRingkasan(content) {
       <div class="admin-stat-card"><div class="n">${totalOrders}</div><div class="l">Total Pesanan</div></div>
       <div class="admin-stat-card"><div class="n">${completedOrders}</div><div class="l">Pesanan Selesai</div></div>
       <div class="admin-stat-card"><div class="n">${pendingVerif ?? 0}</div><div class="l">Menunggu Verifikasi</div></div>
+      <div class="admin-stat-card" style="grid-column:span 2;"><div class="n">${formatRupiah(totalPaidValue)}</div><div class="l">Total Transaksi COD Terkonfirmasi Dibayar</div></div>
     </div>
-    <div class="status-note">Data di atas dihitung langsung dari database secara real-time setiap kali tab ini dibuka.</div>
+    <div class="status-note">Data di atas dihitung langsung dari database secara real-time setiap kali tab ini dibuka. JasaKu tidak menahan dana COD — angka ini murni catatan transaksi yang sudah dikonfirmasi lunas oleh tukang.</div>
   `;
 }
 
@@ -2467,7 +2514,7 @@ async function loadAdminPesanan(content) {
 
   const { data: orders, error } = await sb
     .from('orders')
-    .select('id, category, status, price, created_at, seeker_id, provider_id')
+    .select('id, category, status, price, created_at, seeker_id, provider_id, payment_status, payment_method')
     .order('created_at', { ascending: false });
 
   if (error) { content.innerHTML = `<div class="section-head"><h3>Semua Pesanan</h3></div><div class="empty-state"><div class="ico">⚠️</div><h4>Gagal memuat data</h4></div>`; return; }
@@ -2483,9 +2530,9 @@ async function loadAdminPesanan(content) {
       <div class="order-list-item">
         <div class="oli-top">
           <span class="oli-title">${escapeHtml(o.category)}</span>
-          <span class="status-pill ${o.status}">${ORDER_STATUS_LABEL[o.status]}</span>
+          <span>${`<span class="status-pill ${o.status}">${ORDER_STATUS_LABEL[o.status]}</span>` + paymentBadgeHtml(o)}</span>
         </div>
-        <div class="oli-sub">${escapeHtml(seekerName)} → ${escapeHtml(providerName)} · ${new Date(o.created_at).toLocaleDateString('id-ID')}</div>
+        <div class="oli-sub">${escapeHtml(seekerName)} → ${escapeHtml(providerName)} · ${new Date(o.created_at).toLocaleDateString('id-ID')} · ${o.payment_method === 'cod' ? 'COD' : 'Online'}</div>
         <div class="oli-price">${formatRupiah(o.price)}</div>
       </div>`;
   }).join('');
