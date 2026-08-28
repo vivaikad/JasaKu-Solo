@@ -964,6 +964,50 @@
     border:none; border-radius:20px; padding:8px 15px; font-size:12px; font-weight:600; white-space:nowrap;
   }
   .admin-tab-btn.active{background:var(--white); color:var(--green-700);}
+
+  /* ============================================================
+     11. DISPUTE
+     ============================================================ */
+  .status-pill.open{background:#FDE8E8; color:#B23434;}
+  .status-pill.reviewing{background:#FFF1DB; color:#B5760F;}
+  .status-pill.resolved{background:#E3F6E9; color:#1F7A3E;}
+
+  .btn-oli.warn{background:#fff; border:1.5px solid #F5D9A8; color:#B5760F;}
+
+  .dispute-evidence-thumb{
+    width:100%; max-width:220px; border-radius:10px; margin-top:8px; display:block;
+  }
+  .dispute-order-ref{
+    background:var(--mist); border-radius:10px; padding:10px 12px; font-size:12px; color:#3f4f43; margin-bottom:12px;
+  }
+  .dispute-order-ref b{color:var(--ink);}
+  .resolution-note{
+    background:#F2FAF4; border:1px solid #DCEFE1; border-radius:10px;
+    padding:10px 12px; font-size:12px; color:#3f4f43; margin-top:8px; line-height:1.5;
+  }
+
+  /* ============================================================
+     12. TERMS & CONDITIONS
+     ============================================================ */
+  .terms-hero{
+    flex:none; padding:calc(var(--safe-top) + 16px) 20px 18px;
+    background:var(--green-800); color:#fff;
+    display:flex; align-items:center; gap:12px;
+  }
+  .terms-hero h1{font-family:var(--font-display); font-size:17px; margin:0; font-weight:700;}
+  .terms-scroll{
+    flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    padding:20px 20px calc(var(--safe-bottom) + 30px); background:var(--white);
+  }
+  .terms-scroll h2{font-family:var(--font-display); font-size:14.5px; color:var(--green-800); margin:22px 0 8px;}
+  .terms-scroll h2:first-child{margin-top:0;}
+  .terms-scroll p, .terms-scroll li{font-size:13px; color:#4a5a4d; line-height:1.7;}
+  .terms-scroll ul{margin:0 0 4px; padding-left:20px;}
+  .terms-updated{font-size:11px; color:#9AAA9D; margin-bottom:18px;}
+  .terms-link{
+    background:none; border:none; color:var(--green-600); font-size:12.5px; font-weight:600;
+    text-decoration:underline; padding:0;
+  }
 </style>
 </head>
 <body>
@@ -1071,6 +1115,7 @@
       <div class="social-note">Login Google &amp; Facebook menyusul — pakai Email dulu ya 🙂</div>
 
       <p class="switch-line">Belum punya akun? <a href="#/register">Daftar sekarang</a></p>
+      <p class="switch-line" style="margin-top:14px;"><button class="terms-link" onclick="Router.go('/terms')">Syarat &amp; Ketentuan</button></p>
     </div>
   </section>
 
@@ -1147,6 +1192,7 @@
       </form>
 
       <p class="switch-line">Sudah punya akun? <a href="#/login">Login</a></p>
+      <p class="switch-line" style="margin-top:14px; font-size:11.5px;">Dengan mendaftar, kamu menyetujui <button class="terms-link" style="font-size:11.5px;" onclick="Router.go('/terms')">Syarat &amp; Ketentuan</button> JasaKu Solo.</p>
     </div>
   </section>
 
@@ -1248,8 +1294,62 @@
       <button class="admin-tab-btn" data-admin-tab="verifikasi">Verifikasi</button>
       <button class="admin-tab-btn" data-admin-tab="pengguna">Pengguna</button>
       <button class="admin-tab-btn" data-admin-tab="pesanan">Pesanan</button>
+      <button class="admin-tab-btn" data-admin-tab="dispute">Dispute</button>
     </div>
     <div class="admin-scroll" id="adminContent"><!-- dirender JS --></div>
+  </section>
+
+  <!-- ============================================================
+       SYARAT & KETENTUAN
+       ============================================================ -->
+  <section class="stage-screen" id="termsScreen">
+    <div class="terms-hero">
+      <button class="back-btn" onclick="history.back()">←</button>
+      <h1>Syarat &amp; Ketentuan</h1>
+    </div>
+    <div class="terms-scroll">
+      <p class="terms-updated">Terakhir diperbarui: Agustus 2026</p>
+
+      <h2>1. Kedudukan JasaKu Solo</h2>
+      <p>JasaKu Solo adalah platform perantara yang mempertemukan Pencari Jasa dengan Penyedia Jasa (tukang) di wilayah Solo Raya. JasaKu bukan pemberi jasa langsung, dan Penyedia Jasa adalah mitra independen, bukan karyawan JasaKu. JasaKu tidak menjamin kualitas pekerjaan, namun memfasilitasi proses pemesanan, verifikasi, dan penyelesaian masalah antar pengguna.</p>
+
+      <h2>2. Kewajiban Pencari Jasa</h2>
+      <ul>
+        <li>Memberikan informasi pekerjaan dan lokasi yang akurat.</li>
+        <li>Membayar sesuai kesepakatan setelah pekerjaan selesai (Bayar di Tempat/COD).</li>
+        <li>Tidak membatalkan pesanan secara sepihak setelah Penyedia Jasa tiba di lokasi tanpa alasan yang jelas.</li>
+      </ul>
+
+      <h2>3. Kewajiban Penyedia Jasa</h2>
+      <ul>
+        <li>Data diri dan KTP yang diajukan untuk verifikasi harus asli dan sesuai identitas.</li>
+        <li>Mengerjakan pekerjaan sesuai kesepakatan awal (harga, waktu, dan lingkup kerja).</li>
+        <li>Tidak menaikkan harga secara sepihak di lokasi tanpa persetujuan Pencari Jasa.</li>
+      </ul>
+
+      <h2>4. Aturan Pembatalan</h2>
+      <p>Pencari Jasa dapat membatalkan pesanan tanpa konsekuensi selama status masih "Menunggu Konfirmasi". Pembatalan setelah pesanan berstatus "Diterima" atau "Sedang Dikerjakan" dapat diajukan sebagai Dispute apabila menimbulkan kerugian pada salah satu pihak.</p>
+
+      <h2>5. Dispute (Perselisihan)</h2>
+      <p>Pengguna dapat mengajukan Dispute atas pesanan yang bermasalah, dengan kategori:</p>
+      <ul>
+        <li>Hasil pekerjaan tidak sesuai kesepakatan</li>
+        <li>Penyedia Jasa tidak datang / tidak menyelesaikan pekerjaan</li>
+        <li>Perselisihan status pembayaran</li>
+        <li>Kerusakan properti akibat pengerjaan</li>
+        <li>Perilaku tidak pantas dari salah satu pihak</li>
+      </ul>
+      <p>Setiap Dispute akan ditinjau oleh Admin JasaKu berdasarkan bukti yang diberikan (foto, deskripsi, riwayat pesanan). Keputusan Admin bersifat final untuk status pesanan yang bersangkutan di dalam platform.</p>
+
+      <h2>6. Sanksi</h2>
+      <p>Pelanggaran terhadap Syarat &amp; Ketentuan ini dapat dikenakan sanksi bertahap: peringatan, penangguhan sementara akun, hingga pemblokiran permanen — tergantung tingkat pelanggaran. Penyedia Jasa dengan riwayat Dispute berulang dapat dicabut status verifikasinya.</p>
+
+      <h2>7. Batasan Tanggung Jawab</h2>
+      <p>Karena transaksi menggunakan metode Bayar di Tempat (COD), dana tidak melalui atau ditahan oleh JasaKu. JasaKu tidak bertanggung jawab atas kerugian finansial di luar proses transaksi yang difasilitasi platform. Untuk metode Pembayaran Online (segera hadir), ketentuan tambahan akan berlaku sesuai kebijakan penyedia payment gateway yang digunakan.</p>
+
+      <h2>8. Perubahan Ketentuan</h2>
+      <p>JasaKu dapat memperbarui Syarat &amp; Ketentuan ini sewaktu-waktu. Penggunaan aplikasi secara berkelanjutan setelah pembaruan dianggap sebagai persetujuan atas ketentuan yang berlaku.</p>
+    </div>
   </section>
 
 </div>
@@ -1290,7 +1390,7 @@ function dashboardRouteForRole(role) {
 /* ============================================================
    ROUTER
    ============================================================ */
-const SCREEN_IDS = ['splash', 'loginScreen', 'registerScreen', 'dashSeeker', 'dashProvider', 'dashAdmin'];
+const SCREEN_IDS = ['splash', 'loginScreen', 'registerScreen', 'dashSeeker', 'dashProvider', 'dashAdmin', 'termsScreen'];
 
 const Router = {
   routes: {
@@ -1300,6 +1400,7 @@ const Router = {
     '/dashboard-seeker': () => showDashboard('seeker'),
     '/dashboard-provider': () => showDashboard('provider'),
     '/dashboard-admin': () => showDashboard('admin'),
+    '/terms': showTerms,
   },
   start() {
     window.addEventListener('hashchange', () => this.resolve());
@@ -1335,6 +1436,10 @@ function showLogin() {
 function showRegister() {
   hideAllScreens();
   setTimeout(() => document.getElementById('registerScreen').classList.add('active'), 300);
+}
+function showTerms() {
+  hideAllScreens();
+  setTimeout(() => document.getElementById('termsScreen').classList.add('active'), 300);
 }
 function showDashboard(role) {
   hideAllScreens();
@@ -1422,6 +1527,40 @@ async function fetchProfilesByIds(ids) {
   const map = {};
   data.forEach((p) => { map[p.id] = p; });
   return map;
+}
+
+const DISPUTE_CATEGORY_LABEL = {
+  hasil_tidak_sesuai: 'Hasil tidak sesuai kesepakatan',
+  tidak_datang: 'Tukang tidak datang/tidak selesai',
+  pembayaran: 'Perselisihan pembayaran',
+  kerusakan: 'Kerusakan properti',
+  perilaku: 'Perilaku tidak pantas',
+  lainnya: 'Lainnya',
+};
+const DISPUTE_STATUS_LABEL = { open: 'Dispute Dibuka', reviewing: 'Ditinjau Admin', resolved: 'Dispute Selesai' };
+
+/* Ambil dispute terbaru per order_id (kalau ada), buat dipetakan ke daftar pesanan */
+async function fetchDisputesForOrders(orderIds) {
+  const uniqueIds = [...new Set(orderIds)].filter(Boolean);
+  if (uniqueIds.length === 0) return {};
+  const { data, error } = await sb
+    .from('disputes')
+    .select('id, order_id, status, category, created_at')
+    .in('order_id', uniqueIds)
+    .order('created_at', { ascending: false });
+  if (error) return {};
+  const map = {};
+  data.forEach((d) => { if (!map[d.order_id]) map[d.order_id] = d; }); // ambil yang terbaru per order
+  return map;
+}
+
+function disputeActionHtml(order, dispute) {
+  const eligible = ['accepted', 'in_progress', 'completed'].includes(order.status);
+  if (!eligible) return '';
+  if (dispute) {
+    return `<div class="oli-actions"><span class="status-pill ${dispute.status}" style="flex:1; text-align:center; padding:9px;">⚠️ ${DISPUTE_STATUS_LABEL[dispute.status]}</span></div>`;
+  }
+  return `<div class="oli-actions"><button class="btn-oli warn" data-open-dispute="${order.id}">⚠️ Ajukan Dispute</button></div>`;
 }
 
 function switchSeekerTab(tab) {
@@ -1543,6 +1682,7 @@ async function loadSeekerPesanan(content) {
   }
 
   const providerMap = await fetchProfilesByIds(orders.map((o) => o.provider_id));
+  const disputeMap = await fetchDisputesForOrders(orders.map((o) => o.id));
   const list = orders.map((o) => {
     const provName = providerMap[o.provider_id]?.full_name || 'Tukang';
     const cancelBtn = o.status === 'pending'
@@ -1561,6 +1701,7 @@ async function loadSeekerPesanan(content) {
         <div class="oli-price">${formatRupiah(o.price)}</div>
         ${codNote}
         ${cancelBtn}
+        ${disputeActionHtml(o, disputeMap[o.id])}
       </div>`;
   }).join('');
 
@@ -1595,6 +1736,9 @@ function renderSeekerAkun() {
       <div class="account-row"><span class="k">Nomor HP</span><span>${escapeHtml(p.phone || '-')}</span></div>
       <div class="account-row"><span class="k">Role</span><span>Pencari Jasa</span></div>
     </div>
+    <button class="quick-item" onclick="Router.go('/terms')" style="width:100%; margin-bottom:14px; padding:14px;">
+      <div class="qi">📄</div><div class="ql">Syarat &amp; Ketentuan</div>
+    </button>
     <button class="btn-danger-outline" data-logout>Keluar dari Akun</button>
   `;
 }
@@ -1732,6 +1876,102 @@ async function cancelSeekerOrder(orderId) {
   loadSeekerPesanan(document.getElementById('seekerContent'));
 }
 
+/* ============================================================
+   DISPUTE — dipakai oleh Seeker maupun Provider (order_id sama)
+   ============================================================ */
+let disputeCapture = { orderId: null, evidenceFile: null };
+
+function openDisputeModal(orderId) {
+  disputeCapture = { orderId, evidenceFile: null };
+  const catOptions = Object.entries(DISPUTE_CATEGORY_LABEL)
+    .map(([val, label]) => `<option value="${val}">${label}</option>`).join('');
+
+  openModal(`
+    <div class="modal-head">
+      <h3>Ajukan Dispute</h3>
+      <button class="modal-close-btn" id="modalCloseBtn">✕</button>
+    </div>
+    <div class="dispute-order-ref">Dispute akan ditinjau <b>Admin JasaKu</b> berdasarkan bukti yang kamu berikan. Keputusan admin bersifat final untuk pesanan ini.</div>
+    <div class="field">
+      <label>Kategori Masalah</label>
+      <div class="input-wrap"><select class="select-field" id="disputeCategory">${catOptions}</select></div>
+    </div>
+    <div class="field">
+      <label>Jelaskan Masalahnya</label>
+      <div class="input-wrap" style="align-items:flex-start;">
+        <textarea class="textarea-field" id="disputeDesc" placeholder="Ceritakan kronologi masalah secara jelas..."></textarea>
+      </div>
+    </div>
+    <div class="field">
+      <label>Bukti Foto (opsional, tapi sangat membantu)</label>
+      <div class="capture-box" id="disputeEvidenceBox" style="margin-bottom:10px;">
+        <div class="cb-ico">📎</div>
+        <div class="cb-label">Lampirkan Foto</div>
+        <div class="cb-check">✓</div>
+      </div>
+      <input type="file" accept="image/*" id="disputeEvidenceInput" style="display:none;">
+      <button class="btn-mini-outline" id="pickEvidenceBtn" style="width:100%;">Pilih Foto</button>
+    </div>
+    <button class="btn-primary" id="submitDisputeBtn" style="margin-top:14px;"><span class="btn-label">Kirim Dispute</span></button>
+  `);
+
+  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+  document.getElementById('pickEvidenceBtn').addEventListener('click', () => document.getElementById('disputeEvidenceInput').click());
+  document.getElementById('disputeEvidenceInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    disputeCapture.evidenceFile = file;
+    const box = document.getElementById('disputeEvidenceBox');
+    box.classList.add('filled');
+    box.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="Bukti"><div class="cb-check" style="display:flex;">✓</div>`;
+  });
+  document.getElementById('submitDisputeBtn').addEventListener('click', submitDispute);
+}
+
+async function submitDispute() {
+  const category = document.getElementById('disputeCategory').value;
+  const description = document.getElementById('disputeDesc').value.trim();
+  if (!description) { showToast('Jelaskan dulu masalahnya'); return; }
+
+  const btn = document.getElementById('submitDisputeBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span><span>Mengirim…</span>';
+
+  const userId = AppState.session?.user?.id;
+  let evidencePath = null;
+
+  if (disputeCapture.evidenceFile) {
+    evidencePath = `${userId}/dispute-${Date.now()}.jpg`;
+    const { error: uploadErr } = await sb.storage.from('dispute-evidence').upload(evidencePath, disputeCapture.evidenceFile);
+    if (uploadErr) {
+      showToast('Gagal upload bukti foto. Coba lagi.');
+      btn.disabled = false; btn.innerHTML = '<span class="btn-label">Kirim Dispute</span>';
+      return;
+    }
+  }
+
+  const { error } = await sb.from('disputes').insert({
+    order_id: disputeCapture.orderId,
+    raised_by: userId,
+    category, description,
+    evidence_path: evidencePath,
+    status: 'open',
+  });
+
+  if (error) {
+    showToast('Gagal mengirim dispute. Coba lagi.');
+    btn.disabled = false; btn.innerHTML = '<span class="btn-label">Kirim Dispute</span>';
+    return;
+  }
+
+  closeModal();
+  showToast('Dispute terkirim, admin akan meninjau ✓');
+
+  // refresh list yang lagi aktif
+  if (document.getElementById('seekerContent')) loadSeekerPesanan(document.getElementById('seekerContent'));
+  if (document.getElementById('providerContent')) loadProviderPesanan(document.getElementById('providerContent'));
+}
+
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, (m) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -1753,6 +1993,9 @@ document.getElementById('dashSeeker').addEventListener('click', (e) => {
 
   const cancelBtn = e.target.closest('[data-cancel-order]');
   if (cancelBtn) { cancelSeekerOrder(cancelBtn.dataset.cancelOrder); return; }
+
+  const disputeBtn = e.target.closest('[data-open-dispute]');
+  if (disputeBtn) { openDisputeModal(disputeBtn.dataset.openDispute); return; }
 
   const toastBtn = e.target.closest('[data-toast]');
   if (toastBtn) { showToast(toastBtn.dataset.toast); }
@@ -1901,6 +2144,7 @@ async function loadProviderPesanan(content) {
   }
 
   const seekerMap = await fetchProfilesByIds(orders.map((o) => o.seeker_id));
+  const disputeMap = await fetchDisputesForOrders(orders.map((o) => o.id));
   const list = orders.map((o) => {
     const seekerName = seekerMap[o.seeker_id]?.full_name || 'Pencari Jasa';
     let actions = '';
@@ -1925,6 +2169,7 @@ async function loadProviderPesanan(content) {
         <div class="oli-sub">dari ${escapeHtml(seekerName)} · ${new Date(o.created_at).toLocaleDateString('id-ID')}${o.note ? ' · "' + escapeHtml(o.note) + '"' : ''}</div>
         <div class="oli-price">${formatRupiah(o.price)}</div>
         ${actions}
+        ${disputeActionHtml(o, disputeMap[o.id])}
       </div>`;
   }).join('');
 
@@ -1979,6 +2224,9 @@ function renderProviderProfil() {
     </button>
     <button class="quick-item" data-open-verification style="width:100%; margin-bottom:14px; padding:14px;">
       <div class="qi">🛡️</div><div class="ql">Verifikasi Akun</div>
+    </button>
+    <button class="quick-item" onclick="Router.go('/terms')" style="width:100%; margin-bottom:14px; padding:14px;">
+      <div class="qi">📄</div><div class="ql">Syarat &amp; Ketentuan</div>
     </button>
     <button class="btn-danger-outline" data-logout>Keluar dari Akun</button>
   `;
@@ -2343,6 +2591,9 @@ document.getElementById('dashProvider').addEventListener('click', (e) => {
   const markPaidBtn = e.target.closest('[data-mark-paid]');
   if (markPaidBtn) { markOrderPaid(markPaidBtn.dataset.markPaid); return; }
 
+  const disputeBtn = e.target.closest('[data-open-dispute]');
+  if (disputeBtn) { openDisputeModal(disputeBtn.dataset.openDispute); return; }
+
   const deleteBtn = e.target.closest('[data-delete-service]');
   if (deleteBtn) { deleteMyService(deleteBtn.dataset.deleteService); return; }
 
@@ -2384,6 +2635,7 @@ function switchAdminTab(tab) {
   else if (tab === 'verifikasi') loadAdminVerifikasi(content);
   else if (tab === 'pengguna') loadAdminPengguna(content);
   else if (tab === 'pesanan') loadAdminPesanan(content);
+  else if (tab === 'dispute') loadAdminDispute(content);
 }
 
 async function loadAdminRingkasan(content) {
@@ -2540,6 +2792,99 @@ async function loadAdminPesanan(content) {
   content.innerHTML = `<div class="section-head"><h3>Semua Pesanan (${orders.length})</h3></div>${list}`;
 }
 
+async function loadAdminDispute(content) {
+  content.innerHTML = `<div class="section-head"><h3>Dispute Aktif</h3></div><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div>`;
+
+  const { data: disputes, error } = await sb
+    .from('disputes')
+    .select('id, order_id, raised_by, category, description, evidence_path, status, resolution, created_at')
+    .order('created_at', { ascending: false });
+
+  if (error) { content.innerHTML = `<div class="section-head"><h3>Dispute</h3></div><div class="empty-state"><div class="ico">⚠️</div><h4>Gagal memuat data</h4></div>`; return; }
+  if (disputes.length === 0) { content.innerHTML = `<div class="section-head"><h3>Dispute</h3></div><div class="empty-state"><div class="ico">✅</div><h4>Belum ada dispute</h4><p>Semua pesanan berjalan lancar.</p></div>`; return; }
+
+  const orderIds = disputes.map((d) => d.order_id);
+  const { data: ordersData } = await sb.from('orders').select('id, category, price, seeker_id, provider_id').in('id', orderIds);
+  const orderMap = {};
+  (ordersData || []).forEach((o) => { orderMap[o.id] = o; });
+
+  const peopleIds = disputes.map((d) => d.raised_by)
+    .concat((ordersData || []).map((o) => o.seeker_id))
+    .concat((ordersData || []).map((o) => o.provider_id));
+  const profileMap = await fetchProfilesByIds(peopleIds);
+
+  const active = disputes.filter((d) => d.status !== 'resolved');
+  const resolved = disputes.filter((d) => d.status === 'resolved');
+
+  const cardHtml = (d) => {
+    const order = orderMap[d.order_id];
+    const raisedByName = profileMap[d.raised_by]?.full_name || 'Pengguna';
+    const seekerName = order ? (profileMap[order.seeker_id]?.full_name || 'Pencari Jasa') : '-';
+    const providerName = order ? (profileMap[order.provider_id]?.full_name || 'Penyedia Jasa') : '-';
+    const resolveActions = d.status !== 'resolved' ? `
+        <div class="oli-actions">
+          <button class="btn-oli primary" data-resolve-dispute='{"id":"${d.id}","action":"no_action"}'>Tolak Dispute</button>
+          <button class="btn-oli danger" data-resolve-dispute='{"id":"${d.id}","action":"cancel_order","orderId":"${d.order_id}"}'>Batalkan Pesanan</button>
+        </div>` : '';
+    const resolutionHtml = d.resolution ? `<div class="resolution-note"><b>Keputusan:</b> ${escapeHtml(d.resolution)}</div>` : '';
+
+    return `
+      <div class="review-card">
+        <div class="rc-top"><span class="rc-name">${escapeHtml(DISPUTE_CATEGORY_LABEL[d.category] || d.category)}</span><span class="status-pill ${d.status}">${DISPUTE_STATUS_LABEL[d.status]}</span></div>
+        <div class="dispute-order-ref">
+          Pesanan: <b>${order ? escapeHtml(order.category) : '-'}</b> (${order ? formatRupiah(order.price) : '-'})<br>
+          ${escapeHtml(seekerName)} ↔ ${escapeHtml(providerName)}
+        </div>
+        <div class="rc-meta">Diajukan oleh <b>${escapeHtml(raisedByName)}</b> · ${new Date(d.created_at).toLocaleString('id-ID')}</div>
+        <p style="font-size:12.5px; color:#4a5a4d; margin:0 0 10px; line-height:1.6;">${escapeHtml(d.description)}</p>
+        ${d.evidence_path ? `<button class="review-photo-btn" data-view-dispute-evidence="${d.evidence_path}">🖼 Lihat Bukti Foto</button><div id="dispute-photo-${d.id}"></div>` : ''}
+        ${resolutionHtml}
+        ${resolveActions}
+      </div>`;
+  };
+
+  let html = `<div class="section-head"><h3>Dispute Aktif (${active.length})</h3></div>`;
+  html += active.length ? active.map(cardHtml).join('') : `<div class="empty-state"><div class="ico">✅</div><h4>Tidak ada dispute aktif</h4></div>`;
+  if (resolved.length > 0) {
+    html += `<div class="section-head" style="margin-top:22px;"><h3>Riwayat Selesai (${resolved.length})</h3></div>`;
+    html += resolved.map(cardHtml).join('');
+  }
+  content.innerHTML = html;
+}
+
+async function viewDisputeEvidencePhoto(btn) {
+  const path = btn.dataset.viewDisputeEvidence;
+  btn.textContent = 'Memuat foto…';
+  const { data, error } = await sb.storage.from('dispute-evidence').createSignedUrl(path, 300);
+  if (error || !data) { btn.textContent = 'Gagal memuat foto'; return; }
+  const img = document.createElement('img');
+  img.className = 'dispute-evidence-thumb';
+  img.src = data.signedUrl;
+  btn.replaceWith(img);
+}
+
+async function resolveDispute(disputeId, action, orderId) {
+  const note = action === 'cancel_order'
+    ? prompt('Catatan keputusan (opsional) — pesanan akan dibatalkan:')
+    : prompt('Catatan keputusan (opsional) — dispute ditolak, pesanan tetap berjalan:');
+  if (note === null) return; // batal
+
+  const { error: dErr } = await sb.from('disputes').update({
+    status: 'resolved',
+    resolution: note || (action === 'cancel_order' ? 'Pesanan dibatalkan oleh admin.' : 'Dispute ditolak, pesanan tetap berjalan.'),
+    resolved_at: new Date().toISOString(),
+  }).eq('id', disputeId);
+
+  if (dErr) { showToast('Gagal menyimpan keputusan.'); return; }
+
+  if (action === 'cancel_order' && orderId) {
+    await sb.from('orders').update({ status: 'cancelled', updated_at: new Date().toISOString() }).eq('id', orderId);
+  }
+
+  showToast('Dispute diselesaikan ✓');
+  loadAdminDispute(document.getElementById('adminContent'));
+}
+
 document.getElementById('dashAdmin').addEventListener('click', (e) => {
   const tabBtn = e.target.closest('[data-admin-tab]');
   if (tabBtn) { switchAdminTab(tabBtn.dataset.adminTab); return; }
@@ -2551,6 +2896,16 @@ document.getElementById('dashAdmin').addEventListener('click', (e) => {
   if (decideBtn) {
     const { id, status } = JSON.parse(decideBtn.dataset.verifDecide);
     decideVerification(id, status);
+    return;
+  }
+
+  const disputeEvidenceBtn = e.target.closest('[data-view-dispute-evidence]');
+  if (disputeEvidenceBtn) { viewDisputeEvidencePhoto(disputeEvidenceBtn); return; }
+
+  const resolveBtn = e.target.closest('[data-resolve-dispute]');
+  if (resolveBtn) {
+    const { id, action, orderId } = JSON.parse(resolveBtn.dataset.resolveDispute);
+    resolveDispute(id, action, orderId);
     return;
   }
 });
