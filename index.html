@@ -2869,17 +2869,32 @@ async function resolveDispute(disputeId, action, orderId) {
     : prompt('Catatan keputusan (opsional) — dispute ditolak, pesanan tetap berjalan:');
   if (note === null) return; // batal
 
+  // Kalau aksinya batalkan pesanan, lakukan ini DULU dan pastikan beneran berhasil
+  // (pakai .select() supaya kita bisa deteksi kalau RLS diam-diam menolak update / 0 baris berubah)
+  if (action === 'cancel_order' && orderId) {
+    const { data: updatedOrder, error: oErr } = await sb
+      .from('orders')
+      .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+      .eq('id', orderId)
+      .select();
+
+    if (oErr) {
+      showToast('Gagal membatalkan pesanan: ' + oErr.message);
+      return;
+    }
+    if (!updatedOrder || updatedOrder.length === 0) {
+      showToast('Pesanan gagal dibatalkan (tidak ada izin/baris berubah). Cek RLS policy orders_update_admin.');
+      return;
+    }
+  }
+
   const { error: dErr } = await sb.from('disputes').update({
     status: 'resolved',
     resolution: note || (action === 'cancel_order' ? 'Pesanan dibatalkan oleh admin.' : 'Dispute ditolak, pesanan tetap berjalan.'),
     resolved_at: new Date().toISOString(),
   }).eq('id', disputeId);
 
-  if (dErr) { showToast('Gagal menyimpan keputusan.'); return; }
-
-  if (action === 'cancel_order' && orderId) {
-    await sb.from('orders').update({ status: 'cancelled', updated_at: new Date().toISOString() }).eq('id', orderId);
-  }
+  if (dErr) { showToast('Gagal menyimpan keputusan dispute.'); return; }
 
   showToast('Dispute diselesaikan ✓');
   loadAdminDispute(document.getElementById('adminContent'));
