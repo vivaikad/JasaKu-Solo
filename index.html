@@ -1008,6 +1008,63 @@
     background:none; border:none; color:var(--green-600); font-size:12.5px; font-weight:600;
     text-decoration:underline; padding:0;
   }
+
+  /* ============================================================
+     13. CHAT / REALTIME
+     ============================================================ */
+  .convo-item{
+    background:var(--white); border-radius:14px; padding:14px; margin-bottom:10px;
+    display:flex; align-items:center; gap:12px; text-align:left; width:100%; border:none;
+    box-shadow:0 1px 3px rgba(15,92,42,.06);
+  }
+  .convo-item .cv-av{
+    width:44px; height:44px; border-radius:50%; background:var(--green-600); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; flex:none;
+  }
+  .convo-item .cv-body{flex:1; min-width:0;}
+  .convo-item .cv-name{font-size:13.5px; font-weight:700; color:var(--ink);}
+  .convo-item .cv-sub{font-size:11.5px; color:#8a9a8e; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .convo-item .cv-time{font-size:10.5px; color:#9AAA9D; flex:none;}
+
+  .chat-thread{display:flex; flex-direction:column; height:100%;}
+  .chat-thread-header{
+    flex:none; display:flex; align-items:center; gap:10px;
+    padding:12px 16px; background:var(--white); border-bottom:1px solid #EAF2EC;
+  }
+  .chat-thread-header .ct-av{
+    width:36px; height:36px; border-radius:50%; background:var(--green-600); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; flex:none;
+  }
+  .chat-thread-header .ct-name{font-size:13.5px; font-weight:700; color:var(--ink);}
+  .chat-thread-header .ct-order{font-size:11px; color:#8a9a8e;}
+
+  .chat-messages{
+    flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    padding:16px; background:var(--mist);
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .chat-bubble-row{display:flex;}
+  .chat-bubble-row.mine{justify-content:flex-end;}
+  .chat-bubble{
+    max-width:75%; padding:9px 13px; border-radius:16px; font-size:13.5px; line-height:1.45;
+  }
+  .chat-bubble-row.mine .chat-bubble{background:var(--green-600); color:#fff; border-bottom-right-radius:4px;}
+  .chat-bubble-row.theirs .chat-bubble{background:#fff; color:var(--ink); border-bottom-left-radius:4px; box-shadow:0 1px 2px rgba(0,0,0,.06);}
+  .chat-bubble-time{font-size:10px; opacity:.65; margin-top:3px; display:block;}
+
+  .chat-input-row{
+    flex:none; display:flex; align-items:center; gap:8px;
+    padding:10px 12px calc(var(--safe-bottom) + 10px); background:var(--white); border-top:1px solid #EAF2EC;
+  }
+  .chat-input-row input{
+    flex:1; border:none; background:var(--mist); border-radius:22px; padding:11px 16px;
+    font-size:14px; outline:none; color:var(--ink); font-family:var(--font-body);
+  }
+  .chat-send-btn{
+    flex:none; width:40px; height:40px; border-radius:50%; background:var(--green-600); color:#fff;
+    border:none; font-size:16px; display:flex; align-items:center; justify-content:center;
+  }
+  .chat-send-btn:disabled{opacity:.5;}
 </style>
 </head>
 <body>
@@ -1564,6 +1621,7 @@ function disputeActionHtml(order, dispute) {
 }
 
 function switchSeekerTab(tab) {
+  unsubscribeChatChannel();
   document.querySelectorAll('#dashSeeker .nav-item').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.seekerTab === tab);
   });
@@ -1579,7 +1637,7 @@ function switchSeekerTab(tab) {
 
   if (tab === 'home') loadSeekerHome(content);
   else if (tab === 'pesanan') loadSeekerPesanan(content);
-  else if (tab === 'chat') content.innerHTML = renderSeekerChat();
+  else if (tab === 'chat') loadSeekerChat(content);
   else if (tab === 'akun') content.innerHTML = renderSeekerAkun();
 }
 
@@ -1708,15 +1766,43 @@ async function loadSeekerPesanan(content) {
   content.innerHTML = `<div class="section-head"><h3>Pesanan Saya</h3></div>${list}`;
 }
 
-function renderSeekerChat() {
-  return `
-    <div class="section-head"><h3>Chat</h3></div>
-    <div class="empty-state">
-      <div class="ico">💬</div>
-      <h4>Belum ada percakapan</h4>
-      <p>Chat dengan tukang akan tersedia setelah fitur Realtime dibangun.</p>
-    </div>
-  `;
+async function loadSeekerChat(content) {
+  content.innerHTML = `<div class="section-head"><h3>Chat</h3></div><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div>`;
+
+  const userId = AppState.session?.user?.id;
+  const { data: orders, error } = await sb
+    .from('orders')
+    .select('id, category, status, provider_id, created_at')
+    .eq('seeker_id', userId)
+    .neq('status', 'cancelled')
+    .order('created_at', { ascending: false });
+
+  if (error || !orders) { content.innerHTML = `<div class="section-head"><h3>Chat</h3></div><div class="empty-state"><div class="ico">⚠️</div><h4>Gagal memuat percakapan</h4></div>`; return; }
+  if (orders.length === 0) {
+    content.innerHTML = `
+      <div class="section-head"><h3>Chat</h3></div>
+      <div class="empty-state">
+        <div class="ico">💬</div>
+        <h4>Belum ada percakapan</h4>
+        <p>Chat muncul otomatis setelah kamu memesan tukang.</p>
+      </div>`;
+    return;
+  }
+
+  const providerMap = await fetchProfilesByIds(orders.map((o) => o.provider_id));
+  content.innerHTML = `<div class="section-head"><h3>Chat</h3></div>` + orders.map((o) => {
+    const name = providerMap[o.provider_id]?.full_name || 'Tukang';
+    const initial = name.trim().charAt(0).toUpperCase() || '?';
+    return `
+      <button class="convo-item" data-open-chat="${o.id}">
+        <div class="cv-av">${initial}</div>
+        <div class="cv-body">
+          <div class="cv-name">${escapeHtml(name)}</div>
+          <div class="cv-sub">${escapeHtml(o.category)} · ${ORDER_STATUS_LABEL[o.status]}</div>
+        </div>
+        <div class="cv-time">${new Date(o.created_at).toLocaleDateString('id-ID')}</div>
+      </button>`;
+  }).join('');
 }
 
 function renderSeekerAkun() {
@@ -1997,6 +2083,12 @@ document.getElementById('dashSeeker').addEventListener('click', (e) => {
   const disputeBtn = e.target.closest('[data-open-dispute]');
   if (disputeBtn) { openDisputeModal(disputeBtn.dataset.openDispute); return; }
 
+  const openChatBtn = e.target.closest('[data-open-chat]');
+  if (openChatBtn) { openChatThread(openChatBtn.dataset.openChat); return; }
+
+  const closeChatBtn = e.target.closest('[data-close-chat]');
+  if (closeChatBtn) { closeChatThread(); return; }
+
   const toastBtn = e.target.closest('[data-toast]');
   if (toastBtn) { showToast(toastBtn.dataset.toast); }
 });
@@ -2005,6 +2097,7 @@ document.getElementById('dashSeeker').addEventListener('click', (e) => {
    PROVIDER DASHBOARD — tab switching, content templates, status toggle
    ============================================================ */
 function switchProviderTab(tab) {
+  unsubscribeChatChannel();
   document.querySelectorAll('#dashProvider .nav-item').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.providerTab === tab);
   });
@@ -2015,7 +2108,7 @@ function switchProviderTab(tab) {
   content.scrollTop = 0;
   if (tab === 'home') loadProviderHome(content);
   else if (tab === 'pesanan') loadProviderPesanan(content);
-  else if (tab === 'chat') content.innerHTML = renderProviderChat();
+  else if (tab === 'chat') loadProviderChat(content);
   else if (tab === 'profil') content.innerHTML = renderProviderProfil();
 }
 
@@ -2190,15 +2283,176 @@ async function markOrderPaid(orderId) {
   loadProviderPesanan(document.getElementById('providerContent'));
 }
 
-function renderProviderChat() {
-  return `
-    <div class="section-head"><h3>Chat</h3></div>
-    <div class="empty-state">
-      <div class="ico">💬</div>
-      <h4>Belum ada percakapan</h4>
-      <p>Chat dengan pencari jasa akan tersedia setelah fitur Realtime dibangun.</p>
+async function loadProviderChat(content) {
+  content.innerHTML = `<div class="section-head"><h3>Chat</h3></div><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div>`;
+
+  const userId = AppState.session?.user?.id;
+  const { data: orders, error } = await sb
+    .from('orders')
+    .select('id, category, status, seeker_id, created_at')
+    .eq('provider_id', userId)
+    .neq('status', 'cancelled')
+    .order('created_at', { ascending: false });
+
+  if (error || !orders) { content.innerHTML = `<div class="section-head"><h3>Chat</h3></div><div class="empty-state"><div class="ico">⚠️</div><h4>Gagal memuat percakapan</h4></div>`; return; }
+  if (orders.length === 0) {
+    content.innerHTML = `
+      <div class="section-head"><h3>Chat</h3></div>
+      <div class="empty-state">
+        <div class="ico">💬</div>
+        <h4>Belum ada percakapan</h4>
+        <p>Chat muncul otomatis setelah ada Pencari Jasa yang memesan.</p>
+      </div>`;
+    return;
+  }
+
+  const seekerMap = await fetchProfilesByIds(orders.map((o) => o.seeker_id));
+  content.innerHTML = `<div class="section-head"><h3>Chat</h3></div>` + orders.map((o) => {
+    const name = seekerMap[o.seeker_id]?.full_name || 'Pencari Jasa';
+    const initial = name.trim().charAt(0).toUpperCase() || '?';
+    return `
+      <button class="convo-item" data-open-chat="${o.id}">
+        <div class="cv-av">${initial}</div>
+        <div class="cv-body">
+          <div class="cv-name">${escapeHtml(name)}</div>
+          <div class="cv-sub">${escapeHtml(o.category)} · ${ORDER_STATUS_LABEL[o.status]}</div>
+        </div>
+        <div class="cv-time">${new Date(o.created_at).toLocaleDateString('id-ID')}</div>
+      </button>`;
+  }).join('');
+}
+
+/* ============================================================
+   CHAT THREAD — dipakai bareng Seeker & Provider (per order_id)
+   ============================================================ */
+let activeChatChannel = null;
+let activeChatOrderId = null;
+
+function currentContentContainer() {
+  return AppState.role === 'provider'
+    ? document.getElementById('providerContent')
+    : document.getElementById('seekerContent');
+}
+
+function unsubscribeChatChannel() {
+  if (activeChatChannel) {
+    sb.removeChannel(activeChatChannel);
+    activeChatChannel = null;
+  }
+  activeChatOrderId = null;
+}
+
+async function openChatThread(orderId) {
+  const content = currentContentContainer();
+  content.scrollTop = 0;
+  content.innerHTML = `<div class="mini-loading"><span class="dot-spin"></span>Membuka chat…</div>`;
+
+  const { data: order, error: oErr } = await sb
+    .from('orders')
+    .select('id, category, status, seeker_id, provider_id')
+    .eq('id', orderId)
+    .single();
+
+  if (oErr || !order) { content.innerHTML = `<div class="empty-state"><div class="ico">⚠️</div><h4>Gagal membuka chat</h4></div>`; return; }
+
+  const myId = AppState.session?.user?.id;
+  const otherId = myId === order.seeker_id ? order.provider_id : order.seeker_id;
+  const otherProfile = (await fetchProfilesByIds([otherId]))[otherId];
+  const otherName = otherProfile?.full_name || 'Pengguna';
+  const initial = otherName.trim().charAt(0).toUpperCase() || '?';
+
+  content.innerHTML = `
+    <div class="chat-thread">
+      <div class="chat-thread-header">
+        <button class="back-btn" data-close-chat>←</button>
+        <div class="ct-av">${initial}</div>
+        <div>
+          <div class="ct-name">${escapeHtml(otherName)}</div>
+          <div class="ct-order">${escapeHtml(order.category)} · ${ORDER_STATUS_LABEL[order.status]}</div>
+        </div>
+      </div>
+      <div class="chat-messages" id="chatMessages"><div class="mini-loading"><span class="dot-spin"></span>Memuat pesan…</div></div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="Tulis pesan..." autocomplete="off">
+        <button class="chat-send-btn" id="chatSendBtn">➤</button>
+      </div>
     </div>
   `;
+
+  const { data: messages, error: mErr } = await sb
+    .from('messages')
+    .select('id, sender_id, content, created_at')
+    .eq('order_id', orderId)
+    .order('created_at', { ascending: true });
+
+  const messagesEl = document.getElementById('chatMessages');
+  if (mErr) { messagesEl.innerHTML = `<div class="empty-state"><div class="ico">⚠️</div><h4>Gagal memuat pesan</h4></div>`; }
+  else if (messages.length === 0) {
+    messagesEl.innerHTML = `<div class="empty-state" style="background:transparent; box-shadow:none;"><div class="ico">💬</div><h4>Belum ada pesan</h4><p>Mulai obrolan dengan ${escapeHtml(otherName)}.</p></div>`;
+  } else {
+    messagesEl.innerHTML = messages.map((m) => chatBubbleHtml(m, myId)).join('');
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  // Realtime: dengarkan pesan baru masuk buat order ini
+  unsubscribeChatChannel();
+  activeChatOrderId = orderId;
+  activeChatChannel = sb.channel(`messages-order-${orderId}`)
+    .on('postgres_changes', {
+      event: 'INSERT', schema: 'public', table: 'messages', filter: `order_id=eq.${orderId}`,
+    }, (payload) => {
+      // hindari duplikat kalau ini pesan yang kita kirim sendiri (sudah dirender optimistik)
+      if (document.querySelector(`[data-msg-id="${payload.new.id}"]`)) return;
+      const emptyState = messagesEl.querySelector('.empty-state');
+      if (emptyState) emptyState.remove();
+      messagesEl.insertAdjacentHTML('beforeend', chatBubbleHtml(payload.new, myId));
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    })
+    .subscribe();
+
+  const sendBtn = document.getElementById('chatSendBtn');
+  const input = document.getElementById('chatInput');
+  const doSend = () => sendChatMessage(orderId, input, messagesEl, myId);
+  sendBtn.addEventListener('click', doSend);
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSend(); });
+}
+
+function chatBubbleHtml(m, myId) {
+  const mine = m.sender_id === myId;
+  const time = new Date(m.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  return `
+    <div class="chat-bubble-row ${mine ? 'mine' : 'theirs'}" data-msg-id="${m.id}">
+      <div class="chat-bubble">${escapeHtml(m.content)}<span class="chat-bubble-time">${time}</span></div>
+    </div>`;
+}
+
+async function sendChatMessage(orderId, input, messagesEl, myId) {
+  const content = input.value.trim();
+  if (!content) return;
+  input.value = '';
+
+  // render optimistik dulu biar terasa instan, id sementara
+  const tempId = 'temp-' + Date.now();
+  const emptyState = messagesEl.querySelector('.empty-state');
+  if (emptyState) emptyState.remove();
+  messagesEl.insertAdjacentHTML('beforeend', chatBubbleHtml({ id: tempId, sender_id: myId, content, created_at: new Date().toISOString() }, myId));
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  const { data, error } = await sb.from('messages').insert({ order_id: orderId, sender_id: myId, content }).select().single();
+
+  if (error) {
+    showToast('Gagal mengirim pesan.');
+    return;
+  }
+  // ganti bubble sementara dengan id asli, biar realtime listener nggak dobel render
+  const tempEl = messagesEl.querySelector(`[data-msg-id="${tempId}"]`);
+  if (tempEl) tempEl.setAttribute('data-msg-id', data.id);
+}
+
+function closeChatThread() {
+  unsubscribeChatChannel();
+  if (AppState.role === 'provider') switchProviderTab('chat');
+  else switchSeekerTab('chat');
 }
 
 function renderProviderProfil() {
@@ -2593,6 +2847,12 @@ document.getElementById('dashProvider').addEventListener('click', (e) => {
 
   const disputeBtn = e.target.closest('[data-open-dispute]');
   if (disputeBtn) { openDisputeModal(disputeBtn.dataset.openDispute); return; }
+
+  const openChatBtn = e.target.closest('[data-open-chat]');
+  if (openChatBtn) { openChatThread(openChatBtn.dataset.openChat); return; }
+
+  const closeChatBtn = e.target.closest('[data-close-chat]');
+  if (closeChatBtn) { closeChatThread(); return; }
 
   const deleteBtn = e.target.closest('[data-delete-service]');
   if (deleteBtn) { deleteMyService(deleteBtn.dataset.deleteService); return; }
