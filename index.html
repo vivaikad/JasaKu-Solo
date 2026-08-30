@@ -502,7 +502,7 @@
     background:var(--lime-400); border:1.5px solid var(--green-800);
   }
   .topbar-avatar{
-    width:38px; height:38px; border-radius:50%; background:var(--green-500);
+    width:38px; height:38px; border-radius:50%; overflow:hidden; position:relative; background:var(--green-500);
     display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px;
   }
 
@@ -634,7 +634,7 @@
     box-shadow:0 1px 3px rgba(15,92,42,.06);
   }
   .account-card .av{
-    width:56px; height:56px; border-radius:50%; background:var(--green-600); color:#fff;
+    width:56px; height:56px; border-radius:50%; overflow:hidden; position:relative; background:var(--green-600); color:#fff;
     display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; flex:none;
   }
   .account-card .nm{font-family:var(--font-display); font-size:16px; font-weight:700; color:var(--ink);}
@@ -776,7 +776,7 @@
     box-shadow:0 1px 3px rgba(15,92,42,.06);
   }
   .provider-card .pc-av{
-    width:46px; height:46px; border-radius:50%; background:var(--green-600); color:#fff;
+    width:46px; height:46px; border-radius:50%; overflow:hidden; position:relative; background:var(--green-600); color:#fff;
     display:flex; align-items:center; justify-content:center; font-weight:700; font-size:17px; flex:none;
   }
   .provider-card .pc-body{flex:1; min-width:0;}
@@ -946,7 +946,7 @@
     box-shadow:0 1px 3px rgba(15,92,42,.06);
   }
   .user-row-card .ur-av{
-    width:38px; height:38px; border-radius:50%; background:var(--green-600); color:#fff;
+    width:38px; height:38px; border-radius:50%; overflow:hidden; position:relative; background:var(--green-600); color:#fff;
     display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; flex:none;
   }
   .user-row-card .ur-name{font-size:13px; font-weight:700; color:var(--ink);}
@@ -1018,7 +1018,7 @@
     box-shadow:0 1px 3px rgba(15,92,42,.06);
   }
   .convo-item .cv-av{
-    width:44px; height:44px; border-radius:50%; background:var(--green-600); color:#fff;
+    width:44px; height:44px; border-radius:50%; overflow:hidden; position:relative; background:var(--green-600); color:#fff;
     display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; flex:none;
   }
   .convo-item .cv-body{flex:1; min-width:0;}
@@ -1032,7 +1032,7 @@
     padding:12px 16px; background:var(--white); border-bottom:1px solid #EAF2EC;
   }
   .chat-thread-header .ct-av{
-    width:36px; height:36px; border-radius:50%; background:var(--green-600); color:#fff;
+    width:36px; height:36px; border-radius:50%; overflow:hidden; position:relative; background:var(--green-600); color:#fff;
     display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; flex:none;
   }
   .chat-thread-header .ct-name{font-size:13.5px; font-weight:700; color:var(--ink);}
@@ -1065,6 +1065,40 @@
     border:none; font-size:16px; display:flex; align-items:center; justify-content:center;
   }
   .chat-send-btn:disabled{opacity:.5;}
+
+  /* ============================================================
+     14. AVATAR UPLOAD + PROVIDER DETAIL (untuk Seeker)
+     ============================================================ */
+  .avatar-edit-wrap{position:relative; display:inline-block;}
+  .avatar-edit-btn{
+    position:absolute; bottom:-2px; right:-2px;
+    width:24px; height:24px; border-radius:50%;
+    background:var(--green-600); color:#fff; border:2px solid #fff;
+    display:flex; align-items:center; justify-content:center; font-size:11px;
+  }
+
+  .provider-detail-card{
+    background:var(--white); border-radius:16px; padding:20px; text-align:center; margin-bottom:16px;
+    box-shadow:0 1px 3px rgba(15,92,42,.06);
+  }
+  .provider-detail-card .pd-av{
+    width:84px; height:84px; border-radius:50%; margin:0 auto 12px;
+    background:var(--green-600); color:#fff; overflow:hidden; position:relative;
+    display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:700;
+  }
+  .provider-detail-card h3{font-family:var(--font-display); font-size:17px; margin:4px 0 6px; color:var(--ink);}
+  .provider-detail-card .badges{display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; margin-bottom:4px;}
+
+  .locked-info{
+    background:#FFF7E8; border:1px solid #F5E2B8; border-radius:12px;
+    padding:14px; font-size:12.5px; color:#8a7a4a; text-align:center; line-height:1.6; margin-bottom:16px;
+  }
+  .unlocked-info{
+    background:#F2FAF4; border:1px solid #DCEFE1; border-radius:12px;
+    padding:14px; margin-bottom:16px;
+  }
+  .unlocked-info .ui-row{display:flex; justify-content:space-between; font-size:13px; padding:5px 0;}
+  .unlocked-info .ui-row .k{color:#8a9a8e;}
 </style>
 </head>
 <body>
@@ -1508,7 +1542,7 @@ function showDashboard(role) {
   const nameEl = document.getElementById(nameMap[role]);
   const avatarEl = document.getElementById(avatarMap[role]);
   if (nameEl) nameEl.textContent = fullName;
-  if (avatarEl) avatarEl.textContent = fullName.trim().charAt(0).toUpperCase() || '?';
+  if (avatarEl) avatarEl.innerHTML = avatarInnerHtml(fullName, AppState.profile?.avatar_url);
 
   if (role === 'seeker') switchSeekerTab('home');
   if (role === 'provider') {
@@ -1579,7 +1613,7 @@ document.getElementById('modalOverlay').addEventListener('click', (e) => {
 async function fetchProfilesByIds(ids) {
   const uniqueIds = [...new Set(ids)].filter(Boolean);
   if (uniqueIds.length === 0) return {};
-  const { data, error } = await sb.from('profiles').select('id, full_name, phone').in('id', uniqueIds);
+  const { data, error } = await sb.from('profiles').select('id, full_name, phone, avatar_url').in('id', uniqueIds);
   if (error) return {};
   const map = {};
   data.forEach((p) => { map[p.id] = p; });
@@ -1791,11 +1825,11 @@ async function loadSeekerChat(content) {
 
   const providerMap = await fetchProfilesByIds(orders.map((o) => o.provider_id));
   content.innerHTML = `<div class="section-head"><h3>Chat</h3></div>` + orders.map((o) => {
-    const name = providerMap[o.provider_id]?.full_name || 'Tukang';
-    const initial = name.trim().charAt(0).toUpperCase() || '?';
+    const prov = providerMap[o.provider_id];
+    const name = prov?.full_name || 'Tukang';
     return `
       <button class="convo-item" data-open-chat="${o.id}">
-        <div class="cv-av">${initial}</div>
+        <div class="cv-av">${avatarInnerHtml(name, prov?.avatar_url)}</div>
         <div class="cv-body">
           <div class="cv-name">${escapeHtml(name)}</div>
           <div class="cv-sub">${escapeHtml(o.category)} · ${ORDER_STATUS_LABEL[o.status]}</div>
@@ -1870,11 +1904,10 @@ async function openBrowseCategory(category) {
   const cards = services.map((s) => {
     const prov = providerMap[s.provider_id];
     const provName = prov?.full_name || 'Tukang';
-    const initial = provName.trim().charAt(0).toUpperCase() || '?';
     return `
       <div class="provider-card">
-        <div class="pc-av">${initial}</div>
-        <div class="pc-body">
+        <button class="pc-av" data-view-provider="${s.provider_id}" style="border:none; padding:0; cursor:pointer;">${avatarInnerHtml(provName, prov?.avatar_url)}</button>
+        <div class="pc-body" data-view-provider="${s.provider_id}" style="cursor:pointer;">
           <div class="pc-title">${escapeHtml(s.title)}</div>
           <div class="pc-sub">oleh ${escapeHtml(provName)}${s.description ? ' · ' + escapeHtml(s.description) : ''}</div>
           <div class="pc-price">${formatRupiah(s.price)}</div>
@@ -1884,6 +1917,63 @@ async function openBrowseCategory(category) {
   }).join('');
 
   listArea.innerHTML = backRow + cards;
+}
+
+/* ============================================================
+   DETAIL PROVIDER (untuk Seeker) — partial sebelum pesan, full setelah pesan
+   ============================================================ */
+async function openProviderDetail(providerId) {
+  const content = document.getElementById('seekerContent');
+  content.scrollTop = 0;
+  content.innerHTML = `<div class="back-row"><button class="back-btn" data-back-to-seeker-home>←</button><h3>Profil Tukang</h3></div><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div>`;
+
+  const myId = AppState.session?.user?.id;
+
+  const [profileMap, basicVerif, ktpVerif, { data: myOrders }, { data: services }] = await Promise.all([
+    fetchProfilesByIds([providerId]),
+    fetchLatestVerification(providerId, 'basic'),
+    fetchLatestVerification(providerId, 'ktp'),
+    sb.from('orders').select('id').eq('seeker_id', myId).eq('provider_id', providerId).limit(1),
+    sb.from('services').select('id, category, title, description, price').eq('provider_id', providerId).order('created_at', { ascending: false }),
+  ]);
+
+  const provider = profileMap[providerId] || {};
+  const name = provider.full_name || 'Tukang';
+  const hasOrdered = (myOrders || []).length > 0;
+
+  let verifBadge = '<span class="verify-badge" style="background:#F1F6F2; color:#8a9a8e;">🛡️ Belum Terverifikasi</span>';
+  if (ktpVerif.status === 'approved') verifBadge = '<span class="verify-badge" style="background:#E3F6E9; color:#1F7A3E;">🛡️ Super Verified</span>';
+  else if (basicVerif.status === 'approved') verifBadge = '<span class="verify-badge" style="background:#E3F6E9; color:#1F7A3E;">🛡️ Terverifikasi</span>';
+
+  const infoBlock = hasOrdered
+    ? `<div class="unlocked-info">
+         <div class="ui-row"><span class="k">Nomor HP</span><span><b>${escapeHtml(provider.phone || '-')}</b></span></div>
+       </div>`
+    : `<div class="locked-info">🔒 Nomor HP &amp; detail lengkap muncul otomatis setelah kamu memesan salah satu layanan tukang ini.</div>`;
+
+  const svcHtml = (services || []).length === 0
+    ? `<div class="empty-state"><div class="ico">🧰</div><h4>Belum ada layanan aktif</h4></div>`
+    : services.map((s) => `
+        <div class="provider-card">
+          <div class="pc-body">
+            <div class="pc-title">${escapeHtml(s.title)}</div>
+            <div class="pc-sub">${escapeHtml(s.category)}${s.description ? ' · ' + escapeHtml(s.description) : ''}</div>
+            <div class="pc-price">${formatRupiah(s.price)}</div>
+          </div>
+          <button class="btn-mini-outline" data-order-service='${JSON.stringify({ id: s.id, provider_id: providerId, category: s.category, title: s.title, price: s.price }).replace(/'/g, "&#39;")}'>Pesan</button>
+        </div>`).join('');
+
+  content.innerHTML = `
+    <div class="back-row"><button class="back-btn" data-back-to-seeker-home>←</button><h3>Profil Tukang</h3></div>
+    <div class="provider-detail-card">
+      <div class="pd-av">${avatarInnerHtml(name, provider.avatar_url)}</div>
+      <h3>${escapeHtml(name)}</h3>
+      <div class="badges">${verifBadge}</div>
+    </div>
+    ${infoBlock}
+    <div class="section-head"><h3>Layanan yang Ditawarkan</h3></div>
+    ${svcHtml}
+  `;
 }
 
 function openOrderModal(service) {
@@ -2064,12 +2154,24 @@ function escapeHtml(str) {
   }[m]));
 }
 
+/* Kembalikan <img> kalau ada foto profil, atau inisial huruf kalau belum ada */
+function avatarInnerHtml(name, avatarUrl) {
+  const initial = (name || '?').trim().charAt(0).toUpperCase() || '?';
+  if (avatarUrl) {
+    return `<img src="${avatarUrl}" alt="${escapeHtml(name || '')}" style="width:100%;height:100%;object-fit:cover;">`;
+  }
+  return initial;
+}
+
 document.getElementById('dashSeeker').addEventListener('click', (e) => {
   const tabBtn = e.target.closest('[data-seeker-tab]');
   if (tabBtn) { switchSeekerTab(tabBtn.dataset.seekerTab); return; }
 
   const catBtn = e.target.closest('[data-browse-category]');
   if (catBtn) { openBrowseCategory(catBtn.dataset.browseCategory); return; }
+
+  const viewProviderBtn = e.target.closest('[data-view-provider]');
+  if (viewProviderBtn) { openProviderDetail(viewProviderBtn.dataset.viewProvider); return; }
 
   const backBtn = e.target.closest('[data-back-to-seeker-home]');
   if (backBtn) { switchSeekerTab('home'); return; }
@@ -2308,11 +2410,11 @@ async function loadProviderChat(content) {
 
   const seekerMap = await fetchProfilesByIds(orders.map((o) => o.seeker_id));
   content.innerHTML = `<div class="section-head"><h3>Chat</h3></div>` + orders.map((o) => {
-    const name = seekerMap[o.seeker_id]?.full_name || 'Pencari Jasa';
-    const initial = name.trim().charAt(0).toUpperCase() || '?';
+    const seeker = seekerMap[o.seeker_id];
+    const name = seeker?.full_name || 'Pencari Jasa';
     return `
       <button class="convo-item" data-open-chat="${o.id}">
-        <div class="cv-av">${initial}</div>
+        <div class="cv-av">${avatarInnerHtml(name, seeker?.avatar_url)}</div>
         <div class="cv-body">
           <div class="cv-name">${escapeHtml(name)}</div>
           <div class="cv-sub">${escapeHtml(o.category)} · ${ORDER_STATUS_LABEL[o.status]}</div>
@@ -2359,13 +2461,12 @@ async function openChatThread(orderId) {
   const otherId = myId === order.seeker_id ? order.provider_id : order.seeker_id;
   const otherProfile = (await fetchProfilesByIds([otherId]))[otherId];
   const otherName = otherProfile?.full_name || 'Pengguna';
-  const initial = otherName.trim().charAt(0).toUpperCase() || '?';
 
   content.innerHTML = `
     <div class="chat-thread">
       <div class="chat-thread-header">
         <button class="back-btn" data-close-chat>←</button>
-        <div class="ct-av">${initial}</div>
+        <div class="ct-av">${avatarInnerHtml(otherName, otherProfile?.avatar_url)}</div>
         <div>
           <div class="ct-name">${escapeHtml(otherName)}</div>
           <div class="ct-order">${escapeHtml(order.category)} · ${ORDER_STATUS_LABEL[order.status]}</div>
@@ -2458,15 +2559,18 @@ function closeChatThread() {
 function renderProviderProfil() {
   const p = AppState.profile || {};
   const fullName = p.full_name || 'Pengguna';
-  const initial = fullName.trim().charAt(0).toUpperCase() || '?';
   return `
     <div class="account-card">
-      <div class="av">${initial}</div>
+      <div class="avatar-edit-wrap">
+        <div class="av" id="profileAvatarDisplay">${avatarInnerHtml(fullName, p.avatar_url)}</div>
+        <button class="avatar-edit-btn" id="editAvatarBtn">📷</button>
+      </div>
       <div>
         <div class="nm">${escapeHtml(fullName)}</div>
         <div class="rl">Penyedia Jasa</div>
       </div>
     </div>
+    <input type="file" accept="image/*" id="avatarFileInput" style="display:none;">
     <div class="account-list">
       <div class="account-row"><span class="k">Email</span><span>${escapeHtml(AppState.session?.user?.email || '-')}</span></div>
       <div class="account-row"><span class="k">Nomor HP</span><span>${escapeHtml(p.phone || '-')}</span></div>
@@ -2819,9 +2923,41 @@ async function deleteMyService(serviceId) {
   loadMyServices();
 }
 
+/* ============================================================
+   UPLOAD FOTO PROFIL (avatar publik, terpisah dari selfie verifikasi)
+   ============================================================ */
+async function uploadAvatar(file) {
+  const userId = AppState.session?.user?.id;
+  if (!userId || !file) return;
+
+  showToast('Mengunggah foto…');
+  const path = `${userId}/avatar.jpg`;
+
+  const { error: uploadErr } = await sb.storage.from('avatars').upload(path, file, { upsert: true });
+  if (uploadErr) { showToast('Gagal mengunggah foto profil.'); return; }
+
+  const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
+  const avatarUrl = urlData.publicUrl + '?t=' + Date.now(); // cache-busting
+
+  const { error: updateErr } = await sb.from('profiles').update({ avatar_url: avatarUrl }).eq('id', userId);
+  if (updateErr) { showToast('Foto terunggah, tapi gagal menyimpan ke profil.'); return; }
+
+  if (AppState.profile) AppState.profile.avatar_url = avatarUrl;
+  showToast('Foto profil berhasil diperbarui ✓');
+
+  // refresh tampilan yang lagi kebuka
+  const displayEl = document.getElementById('profileAvatarDisplay');
+  if (displayEl) displayEl.innerHTML = avatarInnerHtml(AppState.profile?.full_name, avatarUrl);
+  const topbarEl = document.getElementById('providerAvatarInitial');
+  if (topbarEl) topbarEl.innerHTML = avatarInnerHtml(AppState.profile?.full_name, avatarUrl);
+}
+
 document.getElementById('dashProvider').addEventListener('click', (e) => {
   const tabBtn = e.target.closest('[data-provider-tab]');
   if (tabBtn) { switchProviderTab(tabBtn.dataset.providerTab); return; }
+
+  const editAvatarBtn = e.target.closest('#editAvatarBtn');
+  if (editAvatarBtn) { document.getElementById('avatarFileInput').click(); return; }
 
   const myServicesBtn = e.target.closest('[data-open-my-services]');
   if (myServicesBtn) { openMyServices(); return; }
@@ -2862,6 +2998,14 @@ document.getElementById('dashProvider').addEventListener('click', (e) => {
 });
 
 /* Toggle status Tersedia/Tidak Tersedia — beneran tersimpan ke database */
+/* Delegasi event 'change' buat input file foto profil (di-render ulang tiap buka tab Profil) */
+document.getElementById('dashProvider').addEventListener('change', (e) => {
+  if (e.target && e.target.id === 'avatarFileInput') {
+    const file = e.target.files[0];
+    if (file) uploadAvatar(file);
+  }
+});
+
 document.getElementById('availabilityToggle').addEventListener('click', async (e) => {
   const btn = e.currentTarget;
   const newValue = !btn.classList.contains('on');
@@ -2994,7 +3138,7 @@ async function loadAdminPengguna(content) {
   content.innerHTML = `<div class="section-head"><h3>Semua Pengguna</h3></div><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div>`;
 
   const [{ data: profiles, error: pErr }, { data: roles, error: rErr }] = await Promise.all([
-    sb.from('profiles').select('id, full_name, phone, created_at').order('created_at', { ascending: false }),
+    sb.from('profiles').select('id, full_name, phone, avatar_url, created_at').order('created_at', { ascending: false }),
     sb.from('user_roles').select('user_id, role'),
   ]);
 
@@ -3006,10 +3150,9 @@ async function loadAdminPengguna(content) {
   const rows = profiles.map((p) => {
     const role = roleMap[p.id] || 'seeker';
     const roleLabel = { seeker: 'Pencari Jasa', provider: 'Penyedia Jasa', admin: 'Admin' }[role] || role;
-    const initial = (p.full_name || '?').trim().charAt(0).toUpperCase() || '?';
     return `
       <div class="user-row-card">
-        <div class="ur-av">${initial}</div>
+        <div class="ur-av">${avatarInnerHtml(p.full_name, p.avatar_url)}</div>
         <div style="flex:1;">
           <div class="ur-name">${escapeHtml(p.full_name || 'Tanpa nama')}</div>
           <div class="ur-sub">${escapeHtml(p.phone || '-')}</div>
