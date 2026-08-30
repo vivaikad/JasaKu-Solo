@@ -1099,6 +1099,30 @@
   }
   .unlocked-info .ui-row{display:flex; justify-content:space-between; font-size:13px; padding:5px 0;}
   .unlocked-info .ui-row .k{color:#8a9a8e;}
+
+  /* ============================================================
+     15. RATING & REVIEW
+     ============================================================ */
+  .star-picker{display:flex; gap:8px; justify-content:center; margin:6px 0 16px;}
+  .star-picker button{
+    background:none; border:none; font-size:34px; line-height:1; padding:2px;
+    color:#E1EFE4; transition:color .15s, transform .15s;
+  }
+  .star-picker button.active{color:#F5B942; transform:scale(1.08);}
+
+  .rating-summary{display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:4px;}
+  .rating-summary .stars-readonly{color:#F5B942; font-size:16px; letter-spacing:1px;}
+  .rating-summary .rs-text{font-size:12.5px; color:#8a9a8e;}
+
+  .review-item{
+    background:var(--white); border-radius:14px; padding:14px; margin-bottom:10px;
+    box-shadow:0 1px 3px rgba(15,92,42,.06);
+  }
+  .review-item .rv-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;}
+  .review-item .rv-name{font-size:13px; font-weight:700; color:var(--ink);}
+  .review-item .rv-stars{color:#F5B942; font-size:13px; letter-spacing:1px;}
+  .review-item .rv-comment{font-size:12.5px; color:#4a5a4d; line-height:1.55; margin-top:4px;}
+  .review-item .rv-date{font-size:10.5px; color:#9AAA9D; margin-top:4px;}
 </style>
 </head>
 <body>
@@ -1654,6 +1678,31 @@ function disputeActionHtml(order, dispute) {
   return `<div class="oli-actions"><button class="btn-oli warn" data-open-dispute="${order.id}">⚠️ Ajukan Dispute</button></div>`;
 }
 
+/* Ambil review terbaru per order_id (kalau ada) */
+async function fetchReviewsForOrders(orderIds) {
+  const uniqueIds = [...new Set(orderIds)].filter(Boolean);
+  if (uniqueIds.length === 0) return {};
+  const { data, error } = await sb.from('reviews').select('id, order_id, rating, comment').in('order_id', uniqueIds);
+  if (error) return {};
+  const map = {};
+  data.forEach((r) => { map[r.order_id] = r; });
+  return map;
+}
+
+function starsHtml(rating, size) {
+  const full = '★'.repeat(rating);
+  const empty = '☆'.repeat(5 - rating);
+  return `<span class="${size === 'sm' ? 'rv-stars' : 'stars-readonly'}">${full}${empty}</span>`;
+}
+
+function ratingActionHtml(order, review) {
+  if (order.status !== 'completed') return '';
+  if (review) {
+    return `<div class="oli-actions"><span class="status-pill completed" style="flex:1; text-align:center; padding:9px;">${starsHtml(review.rating, 'sm')} Sudah dinilai</span></div>`;
+  }
+  return `<div class="oli-actions"><button class="btn-oli warn" data-open-rating="${order.id}">⭐ Beri Rating</button></div>`;
+}
+
 function switchSeekerTab(tab) {
   unsubscribeChatChannel();
   document.querySelectorAll('#dashSeeker .nav-item').forEach((btn) => {
@@ -1775,6 +1824,7 @@ async function loadSeekerPesanan(content) {
 
   const providerMap = await fetchProfilesByIds(orders.map((o) => o.provider_id));
   const disputeMap = await fetchDisputesForOrders(orders.map((o) => o.id));
+  const reviewMap = await fetchReviewsForOrders(orders.map((o) => o.id));
   const list = orders.map((o) => {
     const provName = providerMap[o.provider_id]?.full_name || 'Tukang';
     const cancelBtn = o.status === 'pending'
@@ -1793,6 +1843,7 @@ async function loadSeekerPesanan(content) {
         <div class="oli-price">${formatRupiah(o.price)}</div>
         ${codNote}
         ${cancelBtn}
+        ${ratingActionHtml(o, reviewMap[o.id])}
         ${disputeActionHtml(o, disputeMap[o.id])}
       </div>`;
   }).join('');
@@ -1929,12 +1980,13 @@ async function openProviderDetail(providerId) {
 
   const myId = AppState.session?.user?.id;
 
-  const [profileMap, basicVerif, ktpVerif, { data: myOrders }, { data: services }] = await Promise.all([
+  const [profileMap, basicVerif, ktpVerif, { data: myOrders }, { data: services }, { data: reviews }] = await Promise.all([
     fetchProfilesByIds([providerId]),
     fetchLatestVerification(providerId, 'basic'),
     fetchLatestVerification(providerId, 'ktp'),
     sb.from('orders').select('id').eq('seeker_id', myId).eq('provider_id', providerId).limit(1),
     sb.from('services').select('id, category, title, description, price').eq('provider_id', providerId).order('created_at', { ascending: false }),
+    sb.from('reviews').select('id, rating, comment, seeker_id, created_at').eq('provider_id', providerId).order('created_at', { ascending: false }),
   ]);
 
   const provider = profileMap[providerId] || {};
@@ -1944,6 +1996,12 @@ async function openProviderDetail(providerId) {
   let verifBadge = '<span class="verify-badge" style="background:#F1F6F2; color:#8a9a8e;">🛡️ Belum Terverifikasi</span>';
   if (ktpVerif.status === 'approved') verifBadge = '<span class="verify-badge" style="background:#E3F6E9; color:#1F7A3E;">🛡️ Super Verified</span>';
   else if (basicVerif.status === 'approved') verifBadge = '<span class="verify-badge" style="background:#E3F6E9; color:#1F7A3E;">🛡️ Terverifikasi</span>';
+
+  const reviewCount = (reviews || []).length;
+  const avgRating = reviewCount > 0 ? (reviews.reduce((s, r) => s + r.rating, 0) / reviewCount) : 0;
+  const ratingRow = reviewCount > 0
+    ? `<div class="rating-summary">${starsHtml(Math.round(avgRating))}<span class="rs-text">${avgRating.toFixed(1)} (${reviewCount} ulasan)</span></div>`
+    : `<div class="rating-summary"><span class="rs-text">Belum ada ulasan</span></div>`;
 
   const infoBlock = hasOrdered
     ? `<div class="unlocked-info">
@@ -1963,16 +2021,36 @@ async function openProviderDetail(providerId) {
           <button class="btn-mini-outline" data-order-service='${JSON.stringify({ id: s.id, provider_id: providerId, category: s.category, title: s.title, price: s.price }).replace(/'/g, "&#39;")}'>Pesan</button>
         </div>`).join('');
 
+  let reviewsHtml = '';
+  if (reviewCount > 0) {
+    const reviewerMap = await fetchProfilesByIds(reviews.map((r) => r.seeker_id));
+    reviewsHtml = `
+      <div class="section-head"><h3>Ulasan (${reviewCount})</h3></div>
+      ${reviews.map((r) => `
+        <div class="review-item">
+          <div class="rv-top">
+            <span class="rv-name">${escapeHtml(reviewerMap[r.seeker_id]?.full_name || 'Pengguna')}</span>
+            ${starsHtml(r.rating, 'sm')}
+          </div>
+          ${r.comment ? `<div class="rv-comment">${escapeHtml(r.comment)}</div>` : ''}
+          <div class="rv-date">${new Date(r.created_at).toLocaleDateString('id-ID')}</div>
+        </div>
+      `).join('')}
+    `;
+  }
+
   content.innerHTML = `
     <div class="back-row"><button class="back-btn" data-back-to-seeker-home>←</button><h3>Profil Tukang</h3></div>
     <div class="provider-detail-card">
       <div class="pd-av">${avatarInnerHtml(name, provider.avatar_url)}</div>
       <h3>${escapeHtml(name)}</h3>
       <div class="badges">${verifBadge}</div>
+      ${ratingRow}
     </div>
     ${infoBlock}
     <div class="section-head"><h3>Layanan yang Ditawarkan</h3></div>
     ${svcHtml}
+    ${reviewsHtml}
   `;
 }
 
@@ -2049,6 +2127,77 @@ async function cancelSeekerOrder(orderId) {
   const { error } = await sb.from('orders').update({ status: 'cancelled', updated_at: new Date().toISOString() }).eq('id', orderId);
   if (error) { showToast('Gagal membatalkan pesanan.'); return; }
   showToast('Pesanan dibatalkan.');
+  loadSeekerPesanan(document.getElementById('seekerContent'));
+}
+
+/* ============================================================
+   RATING & REVIEW
+   ============================================================ */
+let ratingCapture = { orderId: null, providerId: null, value: 0 };
+
+async function openRatingModal(orderId) {
+  const { data: order } = await sb.from('orders').select('id, provider_id, category').eq('id', orderId).single();
+  if (!order) { showToast('Pesanan tidak ditemukan.'); return; }
+
+  ratingCapture = { orderId, providerId: order.provider_id, value: 0 };
+  const providerName = (await fetchProfilesByIds([order.provider_id]))[order.provider_id]?.full_name || 'Tukang';
+
+  openModal(`
+    <div class="modal-head">
+      <h3>Beri Rating</h3>
+      <button class="modal-close-btn" id="modalCloseBtn">✕</button>
+    </div>
+    <div class="modal-summary">Bagaimana pengalaman kamu dengan <b>${escapeHtml(providerName)}</b> untuk pesanan <b>${escapeHtml(order.category)}</b>?</div>
+    <div class="star-picker" id="starPicker">
+      ${[1, 2, 3, 4, 5].map((n) => `<button type="button" data-star="${n}">★</button>`).join('')}
+    </div>
+    <div class="field">
+      <label>Ulasan (opsional)</label>
+      <div class="input-wrap" style="align-items:flex-start;">
+        <textarea class="textarea-field" id="reviewComment" placeholder="Ceritakan pengalaman kamu..."></textarea>
+      </div>
+    </div>
+    <button class="btn-primary" id="submitRatingBtn"><span class="btn-label">Kirim Rating</span></button>
+  `);
+
+  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+  document.querySelectorAll('#starPicker button').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      ratingCapture.value = Number(btn.dataset.star);
+      document.querySelectorAll('#starPicker button').forEach((b) => {
+        b.classList.toggle('active', Number(b.dataset.star) <= ratingCapture.value);
+      });
+    });
+  });
+  document.getElementById('submitRatingBtn').addEventListener('click', submitRating);
+}
+
+async function submitRating() {
+  if (ratingCapture.value === 0) { showToast('Pilih dulu jumlah bintangnya'); return; }
+
+  const btn = document.getElementById('submitRatingBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span><span>Mengirim…</span>';
+
+  const comment = document.getElementById('reviewComment').value.trim();
+  const seekerId = AppState.session?.user?.id;
+
+  const { error } = await sb.from('reviews').insert({
+    order_id: ratingCapture.orderId,
+    seeker_id: seekerId,
+    provider_id: ratingCapture.providerId,
+    rating: ratingCapture.value,
+    comment: comment || null,
+  });
+
+  if (error) {
+    showToast('Gagal mengirim rating. Coba lagi.');
+    btn.disabled = false; btn.innerHTML = '<span class="btn-label">Kirim Rating</span>';
+    return;
+  }
+
+  closeModal();
+  showToast('Terima kasih atas ratingnya ✓');
   loadSeekerPesanan(document.getElementById('seekerContent'));
 }
 
@@ -2182,6 +2331,9 @@ document.getElementById('dashSeeker').addEventListener('click', (e) => {
   const cancelBtn = e.target.closest('[data-cancel-order]');
   if (cancelBtn) { cancelSeekerOrder(cancelBtn.dataset.cancelOrder); return; }
 
+  const ratingBtn = e.target.closest('[data-open-rating]');
+  if (ratingBtn) { openRatingModal(ratingBtn.dataset.openRating); return; }
+
   const disputeBtn = e.target.closest('[data-open-dispute]');
   if (disputeBtn) { openDisputeModal(disputeBtn.dataset.openDispute); return; }
 
@@ -2241,11 +2393,13 @@ async function loadProviderHome(content) {
   `;
 
   const userId = AppState.session?.user?.id;
-  const { data: orders, error } = await sb
-    .from('orders')
-    .select('id, category, status, price, created_at, updated_at, seeker_id, payment_status, payment_method')
-    .eq('provider_id', userId)
-    .order('created_at', { ascending: false });
+  const [{ data: orders, error }, { data: myReviews }] = await Promise.all([
+    sb.from('orders')
+      .select('id, category, status, price, created_at, updated_at, seeker_id, payment_status, payment_method')
+      .eq('provider_id', userId)
+      .order('created_at', { ascending: false }),
+    sb.from('reviews').select('rating').eq('provider_id', userId),
+  ]);
 
   const statGrid = document.getElementById('providerStatGrid');
   const recentEl = document.getElementById('providerRecentOrders');
@@ -2257,6 +2411,11 @@ async function loadProviderHome(content) {
     earningsCard.innerHTML = `<div class="eh"><h4>Ringkasan Pendapatan</h4></div>`;
     return;
   }
+
+  const reviewCount = (myReviews || []).length;
+  const avgRating = reviewCount > 0
+    ? (myReviews.reduce((sum, r) => sum + r.rating, 0) / reviewCount).toFixed(1)
+    : null;
 
   const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
   const isToday = (d) => new Date(d) >= todayStart;
@@ -2275,7 +2434,7 @@ async function loadProviderHome(content) {
     <div class="stat-item"><div class="n">${pendingCount}</div><div class="l">Pesanan<br>Baru</div></div>
     <div class="stat-item"><div class="n">${activeCount}</div><div class="l">Pesanan<br>Aktif</div></div>
     <div class="stat-item"><div class="n">${completedToday.length}</div><div class="l">Selesai<br>Hari Ini</div></div>
-    <div class="stat-item"><div class="n">–</div><div class="l">Rating<br>Saya</div></div>
+    <div class="stat-item"><div class="n">${avgRating ? '⭐' + avgRating : '–'}</div><div class="l">Rating<br>Saya</div></div>
     <div class="stat-item"><div class="n">${formatRupiah(earningsToday)}</div><div class="l">Pendapatan<br>Hari Ini</div></div>
   `;
 
