@@ -1123,6 +1123,32 @@
   .review-item .rv-stars{color:#F5B942; font-size:13px; letter-spacing:1px;}
   .review-item .rv-comment{font-size:12.5px; color:#4a5a4d; line-height:1.55; margin-top:4px;}
   .review-item .rv-date{font-size:10.5px; color:#9AAA9D; margin-top:4px;}
+
+  /* ============================================================
+     16. BUAT PERMINTAAN (OPEN REQUEST)
+     ============================================================ */
+  .status-pill.open{background:#E3EEFC; color:#2B5FA8;}
+  .status-pill.claimed{background:#E3F6E9; color:#1F7A3E;}
+
+  .modal-divider{
+    display:flex; align-items:center; gap:10px; margin:16px 0 12px; color:#9AAA9D; font-size:11.5px;
+  }
+  .modal-divider::before, .modal-divider::after{content:''; flex:1; height:1px; background:#E1EFE4;}
+  .btn-request-cta{
+    width:100%; background:var(--mist); border:1.5px dashed var(--green-500); color:var(--green-700);
+    border-radius:12px; padding:14px; font-weight:700; font-size:13.5px;
+  }
+
+  .request-card{
+    background:var(--white); border-radius:14px; padding:14px; margin-bottom:10px;
+    box-shadow:0 1px 3px rgba(15,92,42,.06);
+  }
+  .request-card .rq-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; gap:8px;}
+  .request-card .rq-title{font-size:13.5px; font-weight:700; color:var(--ink);}
+  .request-card .rq-desc{font-size:12.5px; color:#4a5a4d; line-height:1.55; margin-bottom:8px;}
+  .request-card .rq-meta{font-size:11.5px; color:#8a9a8e; margin-bottom:4px;}
+  .request-card .rq-budget{font-size:13px; font-weight:700; color:var(--green-600); margin-bottom:10px;}
+  .request-card .rq-photo{width:100%; max-width:260px; border-radius:10px; margin-bottom:10px; display:block;}
 </style>
 </head>
 <body>
@@ -1743,9 +1769,16 @@ function openCategoryPickerModal() {
     </div>
     <p style="font-size:12.5px; color:#8a9a8e; margin:-6px 0 16px;">Pilih kategori buat lihat tukang yang tersedia.</p>
     <div class="cat-grid" style="margin-bottom:4px;">${catHtml}</div>
+    <div class="modal-divider">atau</div>
+    <button class="btn-request-cta" id="createRequestCta">📝 Buat Permintaan Terbuka</button>
+    <p style="font-size:11px; color:#9AAA9D; text-align:center; margin:8px 0 0;">Nggak nemu tukang yang cocok? Posting kebutuhanmu, tukang aktif bisa langsung ambil.</p>
   `);
 
   document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+  document.getElementById('createRequestCta').addEventListener('click', () => {
+    closeModal();
+    openCreateRequestScreen();
+  });
   document.querySelectorAll('#modalSheet [data-modal-pick-category]').forEach((btn) => {
     btn.addEventListener('click', () => {
       closeModal();
@@ -1831,18 +1864,43 @@ async function loadSeekerPesanan(content) {
   content.innerHTML = `<div class="section-head"><h3>Pesanan Saya</h3></div><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div>`;
 
   const userId = AppState.session?.user?.id;
-  const { data: orders, error } = await sb
-    .from('orders')
-    .select('id, category, status, price, note, created_at, provider_id, payment_status, payment_method')
-    .eq('seeker_id', userId)
-    .order('created_at', { ascending: false });
+  const [{ data: orders, error }, { data: requests }] = await Promise.all([
+    sb.from('orders')
+      .select('id, category, status, price, note, created_at, provider_id, payment_status, payment_method')
+      .eq('seeker_id', userId)
+      .order('created_at', { ascending: false }),
+    sb.from('requests')
+      .select('id, category, title, description, budget_estimate, status, created_at')
+      .eq('seeker_id', userId)
+      .order('created_at', { ascending: false }),
+  ]);
 
   if (error || !orders) {
     content.innerHTML = `<div class="section-head"><h3>Pesanan Saya</h3></div><div class="empty-state"><div class="ico">⚠️</div><h4>Gagal memuat pesanan</h4></div>`;
     return;
   }
+
+  // ---- Bagian: Permintaan Terbuka Saya ----
+  let requestsHtml = '';
+  if (requests && requests.length > 0) {
+    requestsHtml = `<div class="section-head"><h3>Permintaan Saya</h3></div>` + requests.map((r) => {
+      const cancelBtn = r.status === 'open'
+        ? `<div class="oli-actions"><button class="btn-oli danger" data-cancel-request="${r.id}">Batalkan Permintaan</button></div>`
+        : '';
+      const statusLabel = r.status === 'open' ? 'Menunggu Tukang' : r.status === 'claimed' ? 'Diambil Tukang' : 'Dibatalkan';
+      return `
+        <div class="request-card">
+          <div class="rq-top"><span class="rq-title">${escapeHtml(r.title)}</span><span class="status-pill ${r.status}">${statusLabel}</span></div>
+          <div class="rq-meta">${escapeHtml(r.category)} · ${new Date(r.created_at).toLocaleDateString('id-ID')}</div>
+          ${r.budget_estimate ? `<div class="rq-budget">${formatRupiah(r.budget_estimate)}</div>` : ''}
+          ${cancelBtn}
+        </div>`;
+    }).join('');
+  }
+
+  // ---- Bagian: Pesanan Saya (regular orders) ----
   if (orders.length === 0) {
-    content.innerHTML = `
+    content.innerHTML = requestsHtml + `
       <div class="section-head"><h3>Pesanan Saya</h3></div>
       <div class="empty-state">
         <div class="ico">📋</div>
@@ -1878,7 +1936,7 @@ async function loadSeekerPesanan(content) {
       </div>`;
   }).join('');
 
-  content.innerHTML = `<div class="section-head"><h3>Pesanan Saya</h3></div>${list}`;
+  content.innerHTML = requestsHtml + `<div class="section-head"><h3>Pesanan Saya</h3></div>${list}`;
 }
 
 async function loadSeekerChat(content) {
@@ -2232,6 +2290,120 @@ async function submitRating() {
 }
 
 /* ============================================================
+   BUAT PERMINTAAN (OPEN REQUEST) — sisi Seeker
+   ============================================================ */
+let requestPhotoFile = null;
+
+function openCreateRequestScreen() {
+  requestPhotoFile = null;
+  const content = document.getElementById('seekerContent');
+  content.scrollTop = 0;
+
+  const catOptions = SEEKER_CATEGORIES.map((c) => `<option value="${escapeHtml(c.label)}">${c.label}</option>`).join('');
+
+  content.innerHTML = `
+    <div class="back-row"><button class="back-btn" data-back-to-seeker-home>←</button><h3>Buat Permintaan Terbuka</h3></div>
+    <div class="status-note" style="margin-bottom:16px;">Permintaanmu akan kelihatan ke semua tukang aktif. Tukang pertama yang tap "Ambil" akan otomatis jadi tukangmu.</div>
+
+    <div class="field">
+      <label>Kategori</label>
+      <div class="input-wrap"><select class="select-field" id="reqCategory">${catOptions}</select></div>
+    </div>
+    <div class="field">
+      <label>Judul Permintaan</label>
+      <div class="input-wrap"><input type="text" id="reqTitle" placeholder="Contoh: Perbaikan Kran Air Bocor"></div>
+    </div>
+    <div class="field">
+      <label>Jelaskan Kebutuhanmu</label>
+      <div class="input-wrap" style="align-items:flex-start;">
+        <textarea class="textarea-field" id="reqDesc" placeholder="Ceritakan detail masalahnya..."></textarea>
+      </div>
+    </div>
+    <div class="field">
+      <label>Perkiraan Budget (opsional)</label>
+      <div class="input-wrap"><input type="number" id="reqBudget" placeholder="150000"></div>
+    </div>
+    <div class="field">
+      <label>Alamat</label>
+      <div class="input-wrap"><input type="text" id="reqAddress" placeholder="Alamat lengkap lokasi pekerjaan"></div>
+    </div>
+    <div class="field">
+      <label>Foto (opsional, membantu tukang menilai pekerjaan)</label>
+      <div class="capture-box" id="reqPhotoBox" style="margin-bottom:10px;">
+        <div class="cb-ico">📷</div>
+        <div class="cb-label">Lampirkan Foto</div>
+        <div class="cb-check">✓</div>
+      </div>
+      <input type="file" accept="image/*" id="reqPhotoInput" style="display:none;">
+      <button class="btn-mini-outline" id="pickReqPhotoBtn" style="width:100%;">Pilih Foto</button>
+    </div>
+    <button class="btn-primary" id="submitRequestBtn" style="margin-top:16px;"><span class="btn-label">Kirim Permintaan</span></button>
+  `;
+
+  document.getElementById('pickReqPhotoBtn').addEventListener('click', () => document.getElementById('reqPhotoInput').click());
+  document.getElementById('reqPhotoInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    requestPhotoFile = file;
+    const box = document.getElementById('reqPhotoBox');
+    box.classList.add('filled');
+    box.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="Foto"><div class="cb-check" style="display:flex;">✓</div>`;
+  });
+  document.getElementById('submitRequestBtn').addEventListener('click', submitCreateRequest);
+}
+
+async function submitCreateRequest() {
+  const category = document.getElementById('reqCategory').value;
+  const title = document.getElementById('reqTitle').value.trim();
+  const description = document.getElementById('reqDesc').value.trim();
+  const budget = document.getElementById('reqBudget').value;
+  const address = document.getElementById('reqAddress').value.trim();
+
+  if (!title) { showToast('Judul permintaan wajib diisi'); return; }
+  if (!address) { showToast('Alamat wajib diisi'); return; }
+
+  const btn = document.getElementById('submitRequestBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span><span>Mengirim…</span>';
+
+  const userId = AppState.session?.user?.id;
+  let photoPath = null;
+
+  if (requestPhotoFile) {
+    photoPath = `${userId}/request-${Date.now()}.jpg`;
+    const { error: uploadErr } = await sb.storage.from('request-photos').upload(photoPath, requestPhotoFile);
+    if (uploadErr) {
+      showToast('Gagal upload foto. Coba lagi.');
+      btn.disabled = false; btn.innerHTML = '<span class="btn-label">Kirim Permintaan</span>';
+      return;
+    }
+  }
+
+  const { error } = await sb.from('requests').insert({
+    seeker_id: userId,
+    category, title, description: description || null,
+    budget_estimate: budget ? Number(budget) : null,
+    address, photo_path: photoPath, status: 'open',
+  });
+
+  if (error) {
+    showToast('Gagal mengirim permintaan. Coba lagi.');
+    btn.disabled = false; btn.innerHTML = '<span class="btn-label">Kirim Permintaan</span>';
+    return;
+  }
+
+  showToast('Permintaan terkirim! Menunggu tukang mengambil ✓');
+  switchSeekerTab('pesanan');
+}
+
+async function cancelMyRequest(requestId) {
+  const { error } = await sb.from('requests').update({ status: 'cancelled' }).eq('id', requestId);
+  if (error) { showToast('Gagal membatalkan permintaan.'); return; }
+  showToast('Permintaan dibatalkan.');
+  loadSeekerPesanan(document.getElementById('seekerContent'));
+}
+
+/* ============================================================
    DISPUTE — dipakai oleh Seeker maupun Provider (order_id sama)
    ============================================================ */
 let disputeCapture = { orderId: null, evidenceFile: null };
@@ -2361,6 +2533,9 @@ document.getElementById('dashSeeker').addEventListener('click', (e) => {
   const cancelBtn = e.target.closest('[data-cancel-order]');
   if (cancelBtn) { cancelSeekerOrder(cancelBtn.dataset.cancelOrder); return; }
 
+  const cancelReqBtn = e.target.closest('[data-cancel-request]');
+  if (cancelReqBtn) { cancelMyRequest(cancelReqBtn.dataset.cancelRequest); return; }
+
   const ratingBtn = e.target.closest('[data-open-rating]');
   if (ratingBtn) { openRatingModal(ratingBtn.dataset.openRating); return; }
 
@@ -2382,11 +2557,19 @@ document.getElementById('dashSeeker').addEventListener('click', (e) => {
    ============================================================ */
 function switchProviderTab(tab) {
   unsubscribeChatChannel();
+  unsubscribeRequestsChannel();
+
+  if (tab === 'ambilorder') {
+    document.querySelectorAll('#dashProvider .nav-item').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.providerTab === 'home');
+    });
+    openOpenRequestsScreen();
+    return;
+  }
+
   document.querySelectorAll('#dashProvider .nav-item').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.providerTab === tab);
   });
-
-  if (tab === 'ambilorder') { switchProviderTab('pesanan'); return; }
 
   const content = document.getElementById('providerContent');
   content.scrollTop = 0;
@@ -3113,6 +3296,120 @@ async function deleteMyService(serviceId) {
 }
 
 /* ============================================================
+   PERMINTAAN TERBUKA — sisi Provider (browse & klaim)
+   ============================================================ */
+let activeRequestsChannel = null;
+
+function unsubscribeRequestsChannel() {
+  if (activeRequestsChannel) {
+    sb.removeChannel(activeRequestsChannel);
+    activeRequestsChannel = null;
+  }
+}
+
+async function openOpenRequestsScreen() {
+  const content = document.getElementById('providerContent');
+  content.scrollTop = 0;
+  content.innerHTML = `<div class="back-row"><button class="back-btn" data-back-to-provider-home>←</button><h3>Permintaan Terbuka</h3></div><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div>`;
+
+  await loadOpenRequestsList();
+
+  // Realtime: refresh daftar begitu ada permintaan baru masuk atau diambil tukang lain
+  unsubscribeRequestsChannel();
+  activeRequestsChannel = sb.channel('requests-open-feed')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'requests' }, () => {
+      loadOpenRequestsList();
+    })
+    .subscribe();
+}
+
+async function loadOpenRequestsList() {
+  const content = document.getElementById('providerContent');
+  if (!content) return;
+
+  const { data: requests, error } = await sb
+    .from('requests')
+    .select('id, seeker_id, category, title, description, budget_estimate, address, photo_path, created_at')
+    .eq('status', 'open')
+    .order('created_at', { ascending: false });
+
+  const backRow = `<div class="back-row"><button class="back-btn" data-back-to-provider-home>←</button><h3>Permintaan Terbuka</h3></div>`;
+
+  if (error) { content.innerHTML = backRow + `<div class="empty-state"><div class="ico">⚠️</div><h4>Gagal memuat data</h4></div>`; return; }
+  if (requests.length === 0) {
+    content.innerHTML = backRow + `
+      <div class="empty-state">
+        <div class="ico">📭</div>
+        <h4>Belum ada permintaan terbuka</h4>
+        <p>Permintaan dari Pencari Jasa akan muncul di sini secara real-time.</p>
+      </div>`;
+    return;
+  }
+
+  const seekerMap = await fetchProfilesByIds(requests.map((r) => r.seeker_id));
+  const cards = await Promise.all(requests.map(async (r) => {
+    const seekerName = seekerMap[r.seeker_id]?.full_name || 'Pencari Jasa';
+    let photoHtml = '';
+    if (r.photo_path) {
+      const { data: urlData } = sb.storage.from('request-photos').getPublicUrl(r.photo_path);
+      photoHtml = `<img class="rq-photo" src="${urlData.publicUrl}" alt="Foto permintaan">`;
+    }
+    return `
+      <div class="request-card">
+        <div class="rq-top"><span class="rq-title">${escapeHtml(r.title)}</span><span class="status-pill open">${escapeHtml(r.category)}</span></div>
+        <div class="rq-meta">dari ${escapeHtml(seekerName)} · ${new Date(r.created_at).toLocaleString('id-ID')}</div>
+        ${r.description ? `<div class="rq-desc">${escapeHtml(r.description)}</div>` : ''}
+        ${photoHtml}
+        <div class="rq-meta">📍 ${escapeHtml(r.address || '-')}</div>
+        ${r.budget_estimate ? `<div class="rq-budget">Perkiraan: ${formatRupiah(r.budget_estimate)}</div>` : '<div class="rq-budget">Budget belum ditentukan</div>'}
+        <button class="btn-primary" data-claim-request="${r.id}"><span class="btn-label">✋ Ambil Permintaan Ini</span></button>
+      </div>`;
+  }));
+
+  content.innerHTML = backRow + cards.join('');
+}
+
+async function claimRequest(requestId) {
+  const myId = AppState.session?.user?.id;
+
+  // Update dengan syarat status masih 'open' — mencegah 2 tukang berebut permintaan yang sama
+  const { data: claimed, error: claimErr } = await sb
+    .from('requests')
+    .update({ status: 'claimed', claimed_by: myId, claimed_at: new Date().toISOString() })
+    .eq('id', requestId)
+    .eq('status', 'open')
+    .select()
+    .single();
+
+  if (claimErr || !claimed) {
+    showToast('Yah, permintaan ini sudah diambil tukang lain 😔');
+    loadOpenRequestsList();
+    return;
+  }
+
+  const { data: newOrder, error: orderErr } = await sb.from('orders').insert({
+    seeker_id: claimed.seeker_id,
+    provider_id: myId,
+    category: claimed.category,
+    note: claimed.description,
+    price: claimed.budget_estimate,
+    status: 'accepted',
+    payment_method: 'cod',
+    payment_status: 'unpaid',
+  }).select().single();
+
+  if (orderErr || !newOrder) {
+    showToast('Permintaan diambil, tapi gagal membuat pesanan. Hubungi admin.');
+    return;
+  }
+
+  await sb.from('requests').update({ claimed_order_id: newOrder.id }).eq('id', requestId);
+
+  showToast('Permintaan berhasil diambil! Langsung masuk ke Pesanan Masuk kamu ✓');
+  switchProviderTab('pesanan');
+}
+
+/* ============================================================
    UPLOAD FOTO PROFIL (avatar publik, terpisah dari selfie verifikasi)
    ============================================================ */
 async function uploadAvatar(file) {
@@ -3169,6 +3466,9 @@ document.getElementById('dashProvider').addEventListener('click', (e) => {
 
   const markPaidBtn = e.target.closest('[data-mark-paid]');
   if (markPaidBtn) { markOrderPaid(markPaidBtn.dataset.markPaid); return; }
+
+  const claimReqBtn = e.target.closest('[data-claim-request]');
+  if (claimReqBtn) { claimRequest(claimReqBtn.dataset.claimRequest); return; }
 
   const disputeBtn = e.target.closest('[data-open-dispute]');
   if (disputeBtn) { openDisputeModal(disputeBtn.dataset.openDispute); return; }
