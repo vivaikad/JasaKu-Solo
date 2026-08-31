@@ -1705,15 +1705,18 @@ function ratingActionHtml(order, review) {
 
 function switchSeekerTab(tab) {
   unsubscribeChatChannel();
+
+  if (tab === 'pesanjasa') {
+    document.querySelectorAll('#dashSeeker .nav-item').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.seekerTab === 'home');
+    });
+    openCategoryPickerModal();
+    return;
+  }
+
   document.querySelectorAll('#dashSeeker .nav-item').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.seekerTab === tab);
   });
-
-  if (tab === 'pesanjasa') {
-    showToast('Tap salah satu kategori di Dashboard untuk mulai cari tukang 🔍');
-    switchSeekerTab('home');
-    return;
-  }
 
   const content = document.getElementById('seekerContent');
   content.scrollTop = 0;
@@ -1722,6 +1725,33 @@ function switchSeekerTab(tab) {
   else if (tab === 'pesanan') loadSeekerPesanan(content);
   else if (tab === 'chat') loadSeekerChat(content);
   else if (tab === 'akun') content.innerHTML = renderSeekerAkun();
+}
+
+/* Bottom sheet pilih kategori — dipicu tombol (+) di bottom nav Seeker */
+function openCategoryPickerModal() {
+  const catHtml = SEEKER_CATEGORIES.map((c) =>
+    `<button class="cat-item" data-modal-pick-category="${escapeHtml(c.label)}">
+       <div class="cat-icon">${c.icon}</div>
+       <div class="cat-label">${c.label}</div>
+     </button>`
+  ).join('');
+
+  openModal(`
+    <div class="modal-head">
+      <h3>Cari Jasa Apa?</h3>
+      <button class="modal-close-btn" id="modalCloseBtn">✕</button>
+    </div>
+    <p style="font-size:12.5px; color:#8a9a8e; margin:-6px 0 16px;">Pilih kategori buat lihat tukang yang tersedia.</p>
+    <div class="cat-grid" style="margin-bottom:4px;">${catHtml}</div>
+  `);
+
+  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+  document.querySelectorAll('#modalSheet [data-modal-pick-category]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      closeModal();
+      openBrowseCategory(btn.dataset.modalPickCategory);
+    });
+  });
 }
 
 async function loadSeekerHome(content) {
