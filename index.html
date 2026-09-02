@@ -1866,7 +1866,7 @@ async function loadSeekerPesanan(content) {
   const userId = AppState.session?.user?.id;
   const [{ data: orders, error }, { data: requests }] = await Promise.all([
     sb.from('orders')
-      .select('id, category, status, price, note, created_at, provider_id, payment_status, payment_method')
+      .select('id, category, status, price, note, created_at, provider_id, payment_status, payment_method, latitude, longitude')
       .eq('seeker_id', userId)
       .order('created_at', { ascending: false }),
     sb.from('requests')
@@ -1921,6 +1921,9 @@ async function loadSeekerPesanan(content) {
     const codNote = o.status === 'completed' && o.payment_status === 'unpaid'
       ? `<div class="verif-reject-note" style="background:#FFF7E8;border-color:#F5E2B8;color:#8a7a4a;margin-top:8px;">Bayar tunai (COD) langsung ke tukang. Tukang akan menandai "Sudah Dibayar" setelah menerima.</div>`
       : '';
+    const gpsBtn = (o.latitude && o.longitude)
+      ? `<a class="btn-mini-outline" style="display:block;text-align:center;text-decoration:none;margin-top:8px;" href="https://www.google.com/maps?q=${o.latitude},${o.longitude}" target="_blank" rel="noopener">📍 Buka Lokasi di Maps</a>`
+      : '';
     return `
       <div class="order-list-item">
         <div class="oli-top">
@@ -1929,6 +1932,7 @@ async function loadSeekerPesanan(content) {
         </div>
         <div class="oli-sub">Tukang: ${escapeHtml(provName)} · ${new Date(o.created_at).toLocaleDateString('id-ID')}${o.note ? ' · "' + escapeHtml(o.note) + '"' : ''}</div>
         <div class="oli-price">${formatRupiah(o.price)}</div>
+        ${gpsBtn}
         ${codNote}
         ${cancelBtn}
         ${ratingActionHtml(o, reviewMap[o.id])}
@@ -2143,6 +2147,7 @@ async function openProviderDetail(providerId) {
 }
 
 function openOrderModal(service) {
+  let orderGpsCoords = null;
   openModal(`
     <div class="modal-head">
       <h3>Pesan Tukang</h3>
@@ -2174,10 +2179,18 @@ function openOrderModal(service) {
         <textarea class="textarea-field" id="orderNote" placeholder="Contoh: alamat lengkap, jadwal yang diinginkan, detail kerusakan..."></textarea>
       </div>
     </div>
+    <div class="field">
+      <label>Titik Lokasi GPS (opsional, memudahkan tukang menemukan lokasi)</label>
+      <button type="button" class="btn-mini-outline" id="captureOrderGpsBtn" style="width:100%;">📍 Bagikan Lokasi Saat Ini</button>
+      <div class="status-note" id="orderGpsStatus" style="margin-top:6px;"></div>
+    </div>
     <button class="btn-primary" id="submitOrderBtn"><span class="btn-label">Kirim Pesanan</span></button>
   `);
 
   document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+  document.getElementById('captureOrderGpsBtn').addEventListener('click', () => {
+    captureGpsLocation((lat, lng) => { orderGpsCoords = { lat, lng }; }, 'orderGpsStatus');
+  });
   document.getElementById('submitOrderBtn').addEventListener('click', async () => {
     const btn = document.getElementById('submitOrderBtn');
     btn.disabled = true;
@@ -2196,6 +2209,8 @@ function openOrderModal(service) {
       status: 'pending',
       payment_method: 'cod',
       payment_status: 'unpaid',
+      latitude: orderGpsCoords?.lat ?? null,
+      longitude: orderGpsCoords?.lng ?? null,
     });
 
     if (error) {
@@ -2290,12 +2305,37 @@ async function submitRating() {
 }
 
 /* ============================================================
+   GPS — helper reusable buat Kirim Permintaan & Pesan Langsung
+   ============================================================ */
+function captureGpsLocation(onSuccess, statusElId) {
+  const statusEl = document.getElementById(statusElId);
+  if (!navigator.geolocation) {
+    showToast('Perangkat tidak mendukung GPS.');
+    return;
+  }
+  if (statusEl) statusEl.textContent = '📍 Mengambil lokasi…';
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      onSuccess(pos.coords.latitude, pos.coords.longitude);
+      if (statusEl) statusEl.textContent = '✓ Lokasi berhasil didapat';
+    },
+    () => {
+      if (statusEl) statusEl.textContent = '';
+      showToast('Gagal mengambil lokasi. Pastikan izin GPS diaktifkan.');
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+/* ============================================================
    BUAT PERMINTAAN (OPEN REQUEST) — sisi Seeker
    ============================================================ */
 let requestPhotoFile = null;
+let requestGpsCoords = null;
 
 function openCreateRequestScreen() {
   requestPhotoFile = null;
+  requestGpsCoords = null;
   const content = document.getElementById('seekerContent');
   content.scrollTop = 0;
 
@@ -2328,6 +2368,11 @@ function openCreateRequestScreen() {
       <div class="input-wrap"><input type="text" id="reqAddress" placeholder="Alamat lengkap lokasi pekerjaan"></div>
     </div>
     <div class="field">
+      <label>Titik Lokasi GPS (opsional, memudahkan tukang menemukan lokasi)</label>
+      <button type="button" class="btn-mini-outline" id="captureReqGpsBtn" style="width:100%;">📍 Bagikan Lokasi Saat Ini</button>
+      <div class="status-note" id="reqGpsStatus" style="margin-top:6px;"></div>
+    </div>
+    <div class="field">
       <label>Foto (opsional, membantu tukang menilai pekerjaan)</label>
       <div class="capture-box" id="reqPhotoBox" style="margin-bottom:10px;">
         <div class="cb-ico">📷</div>
@@ -2350,6 +2395,9 @@ function openCreateRequestScreen() {
     box.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="Foto"><div class="cb-check" style="display:flex;">✓</div>`;
   });
   document.getElementById('submitRequestBtn').addEventListener('click', submitCreateRequest);
+  document.getElementById('captureReqGpsBtn').addEventListener('click', () => {
+    captureGpsLocation((lat, lng) => { requestGpsCoords = { lat, lng }; }, 'reqGpsStatus');
+  });
 }
 
 async function submitCreateRequest() {
@@ -2384,6 +2432,8 @@ async function submitCreateRequest() {
     category, title, description: description || null,
     budget_estimate: budget ? Number(budget) : null,
     address, photo_path: photoPath, status: 'open',
+    latitude: requestGpsCoords?.lat ?? null,
+    longitude: requestGpsCoords?.lng ?? null,
   });
 
   if (error) {
@@ -2691,7 +2741,7 @@ async function loadProviderPesanan(content) {
   const userId = AppState.session?.user?.id;
   const { data: orders, error } = await sb
     .from('orders')
-    .select('id, category, status, price, note, created_at, seeker_id, payment_status, payment_method')
+    .select('id, category, status, price, note, created_at, seeker_id, payment_status, payment_method, latitude, longitude')
     .eq('provider_id', userId)
     .order('created_at', { ascending: false });
 
@@ -2727,6 +2777,9 @@ async function loadProviderPesanan(content) {
     } else if (o.status === 'completed' && o.payment_status === 'unpaid') {
       actions = `<div class="oli-actions"><button class="btn-oli primary" data-mark-paid="${o.id}">💵 Tandai Sudah Dibayar (COD)</button></div>`;
     }
+    const gpsBtn = (o.latitude && o.longitude)
+      ? `<a class="btn-mini-outline" style="display:block;text-align:center;text-decoration:none;margin-top:8px;" href="https://www.google.com/maps?q=${o.latitude},${o.longitude}" target="_blank" rel="noopener">📍 Buka Lokasi di Maps</a>`
+      : '';
     return `
       <div class="order-list-item">
         <div class="oli-top">
@@ -2735,6 +2788,7 @@ async function loadProviderPesanan(content) {
         </div>
         <div class="oli-sub">dari ${escapeHtml(seekerName)} · ${new Date(o.created_at).toLocaleDateString('id-ID')}${o.note ? ' · "' + escapeHtml(o.note) + '"' : ''}</div>
         <div class="oli-price">${formatRupiah(o.price)}</div>
+        ${gpsBtn}
         ${actions}
         ${disputeActionHtml(o, disputeMap[o.id])}
       </div>`;
@@ -3396,6 +3450,8 @@ async function claimRequest(requestId) {
     status: 'accepted',
     payment_method: 'cod',
     payment_status: 'unpaid',
+    latitude: claimed.latitude,
+    longitude: claimed.longitude,
   }).select().single();
 
   if (orderErr || !newOrder) {
