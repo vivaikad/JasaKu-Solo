@@ -1,9 +1,9 @@
 /* JasaKu Solo — Service Worker
-   Tahap: Fondasi PWA (app-shell caching, offline fallback)
+   Tahap: Fondasi PWA (app-shell caching, offline fallback) + Push Notification
    Catatan: transaksi sensitif (order, payment, verifikasi) TIDAK boleh
    dilakukan secara offline — itu diatur di index.html, bukan di sini. */
 
-const APP_VERSION = 'jasaku-v1.0.0';
+const APP_VERSION = 'jasaku-v1.1.0';
 const SHELL_CACHE = `${APP_VERSION}-shell`;
 
 const APP_SHELL = [
@@ -63,4 +63,48 @@ self.addEventListener('fetch', (event) => {
       caches.match(req).then((cached) => cached || fetch(req))
     );
   }
+});
+
+/* ============================================================
+   PUSH NOTIFICATION
+   ============================================================ */
+self.addEventListener('push', (event) => {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch (e) {
+    payload = { title: 'JasaKu Solo', body: event.data ? event.data.text() : '' };
+  }
+
+  const title = payload.title || 'JasaKu Solo';
+  const options = {
+    body: payload.body || '',
+    icon: payload.icon || './icon-192.png',
+    badge: './icon-192.png',
+    data: { url: payload.url || './' },
+    tag: payload.tag || undefined,
+    renotify: !!payload.tag,
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Saat notifikasi diklik: fokus tab yang sudah ada, atau buka tab baru
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = (event.notification.data && event.notification.data.url) || './';
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientsArr) => {
+      for (const client of clientsArr) {
+        if ('focus' in client) {
+          client.postMessage({ type: 'notification-click', url: targetUrl });
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(targetUrl);
+      }
+    })
+  );
 });

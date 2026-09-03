@@ -1750,7 +1750,7 @@ function switchSeekerTab(tab) {
   if (tab === 'home') loadSeekerHome(content);
   else if (tab === 'pesanan') loadSeekerPesanan(content);
   else if (tab === 'chat') loadSeekerChat(content);
-  else if (tab === 'akun') content.innerHTML = renderSeekerAkun();
+  else if (tab === 'akun') { content.innerHTML = renderSeekerAkun(); updateNotifButtonState(); }
 }
 
 /* Bottom sheet pilih kategori — dipicu tombol (+) di bottom nav Seeker */
@@ -2002,6 +2002,9 @@ function renderSeekerAkun() {
       <div class="account-row"><span class="k">Nomor HP</span><span>${escapeHtml(p.phone || '-')}</span></div>
       <div class="account-row"><span class="k">Role</span><span>Pencari Jasa</span></div>
     </div>
+    <button class="quick-item" id="enableNotifBtn" style="width:100%; margin-bottom:14px; padding:14px;">
+      <div class="qi">🔔</div><div class="ql">Aktifkan Notifikasi</div>
+    </button>
     <button class="quick-item" onclick="Router.go('/terms')" style="width:100%; margin-bottom:14px; padding:14px;">
       <div class="qi">📄</div><div class="ql">Syarat &amp; Ketentuan</div>
     </button>
@@ -2604,6 +2607,9 @@ document.getElementById('dashSeeker').addEventListener('click', (e) => {
   const editAvatarBtn = e.target.closest('#editSeekerAvatarBtn');
   if (editAvatarBtn) { document.getElementById('seekerAvatarFileInput').click(); return; }
 
+  const notifBtn = e.target.closest('#enableNotifBtn');
+  if (notifBtn) { enablePushNotifications(); return; }
+
   const toastBtn = e.target.closest('[data-toast]');
   if (toastBtn) { showToast(toastBtn.dataset.toast); }
 });
@@ -2639,7 +2645,7 @@ function switchProviderTab(tab) {
   if (tab === 'home') loadProviderHome(content);
   else if (tab === 'pesanan') loadProviderPesanan(content);
   else if (tab === 'chat') loadProviderChat(content);
-  else if (tab === 'profil') content.innerHTML = renderProviderProfil();
+  else if (tab === 'profil') { content.innerHTML = renderProviderProfil(); updateNotifButtonState(); }
 }
 
 async function loadProviderHome(content) {
@@ -3018,6 +3024,9 @@ function renderProviderProfil() {
     </div>
     <button class="quick-item" data-open-my-services style="width:100%; margin-bottom:14px; padding:14px;">
       <div class="qi">🧰</div><div class="ql">Kelola Layanan Saya</div>
+    </button>
+    <button class="quick-item" id="enableNotifBtn" style="width:100%; margin-bottom:14px; padding:14px;">
+      <div class="qi">🔔</div><div class="ql">Aktifkan Notifikasi</div>
     </button>
     <button class="quick-item" data-open-verification style="width:100%; margin-bottom:14px; padding:14px;">
       <div class="qi">🛡️</div><div class="ql">Verifikasi Akun</div>
@@ -3509,12 +3518,94 @@ async function uploadAvatar(file) {
   if (seekerTopbarEl) seekerTopbarEl.innerHTML = avatarInnerHtml(AppState.profile?.full_name, avatarUrl);
 }
 
+/* ============================================================
+   PUSH NOTIFICATION
+   ============================================================ */
+const VAPID_PUBLIC_KEY = 'BNfhIuUqRFSMSd7nsDxcMvfuQ_F6Y-i5RNWQzptCfu8Encf9ZApp0v10F4kNLrjJ1u5IzJ-x-AzjDvs7i33v3-k';
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+function arrayBufferToBase64(buffer) {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+async function enablePushNotifications() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    showToast('Perangkat/browser ini tidak mendukung notifikasi push.');
+    return;
+  }
+  const userId = AppState.session?.user?.id;
+  if (!userId) return;
+
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      showToast('Izin notifikasi ditolak. Aktifkan lewat pengaturan browser kalau berubah pikiran.');
+      return;
+    }
+
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
+    }
+
+    const subJson = sub.toJSON();
+    const { error } = await sb.from('push_subscriptions').upsert({
+      user_id: userId,
+      endpoint: subJson.endpoint,
+      p256dh: subJson.keys.p256dh,
+      auth: subJson.keys.auth,
+    }, { onConflict: 'endpoint' });
+
+    if (error) throw error;
+    showToast('Notifikasi berhasil diaktifkan ✓');
+    updateNotifButtonState();
+  } catch (err) {
+    console.warn('Gagal aktifkan notifikasi:', err);
+    showToast('Gagal mengaktifkan notifikasi. Coba lagi nanti.');
+  }
+}
+
+async function updateNotifButtonState() {
+  const btn = document.getElementById('enableNotifBtn');
+  if (!btn) return;
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    btn.style.display = 'none';
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) {
+      btn.querySelector('.ql').textContent = 'Notifikasi Aktif ✓';
+      btn.disabled = true;
+    }
+  }
+}
+
 document.getElementById('dashProvider').addEventListener('click', (e) => {
   const tabBtn = e.target.closest('[data-provider-tab]');
   if (tabBtn) { switchProviderTab(tabBtn.dataset.providerTab); return; }
 
   const editAvatarBtn = e.target.closest('#editAvatarBtn');
   if (editAvatarBtn) { document.getElementById('avatarFileInput').click(); return; }
+
+  const notifBtn = e.target.closest('#enableNotifBtn');
+  if (notifBtn) { enablePushNotifications(); return; }
 
   const myServicesBtn = e.target.closest('[data-open-my-services]');
   if (myServicesBtn) { openMyServices(); return; }
@@ -4118,6 +4209,11 @@ function registerServiceWorker() {
       navigator.serviceWorker.register('sw.js').catch((err) => {
         console.warn('SW registration failed:', err);
       });
+    });
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'notification-click' && event.data.url) {
+        Router.go(event.data.url);
+      }
     });
   }
 }
