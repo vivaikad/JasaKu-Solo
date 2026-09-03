@@ -3906,16 +3906,23 @@ function runSplashSequence() {
 }
 
 async function resolveInitialRoute() {
-  const { data } = await sb.auth.getSession();
-  if (data && data.session) {
-    AppState.session = data.session;
-    const ok = await loadProfileAndRole(data.session.user.id);
-    if (ok) {
-      Router.go(dashboardRouteForRole(AppState.role));
-      return;
+  try {
+    const { data, error } = await sb.auth.getSession();
+    if (error) throw error;
+    if (data && data.session) {
+      AppState.session = data.session;
+      const ok = await loadProfileAndRole(data.session.user.id);
+      if (ok) {
+        Router.go(dashboardRouteForRole(AppState.role));
+        return;
+      }
     }
+    Router.go('/login');
+  } catch (err) {
+    console.warn('Gagal memuat sesi awal:', err);
+    showToast('Gagal terhubung ke server. Periksa koneksi internet Anda.');
+    Router.go('/login');
   }
-  Router.go('/login');
 }
 
 /* ============================================================
