@@ -3576,7 +3576,7 @@ async function enablePushNotifications() {
     updateNotifButtonState();
   } catch (err) {
     console.warn('Gagal aktifkan notifikasi:', err);
-    alert('Gagal aktifkan notifikasi: ' + (err?.message || err));
+    showToast('Gagal mengaktifkan notifikasi. Coba lagi nanti.');
   }
 }
 
