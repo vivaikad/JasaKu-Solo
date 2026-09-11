@@ -3,7 +3,7 @@
    Catatan: transaksi sensitif (order, payment, verifikasi) TIDAK boleh
    dilakukan secara offline — itu diatur di index.html, bukan di sini. */
 
-const APP_VERSION = 'jasaku-v1.1.0';
+const APP_VERSION = 'jasaku-v1.2.0';
 const SHELL_CACHE = `${APP_VERSION}-shell`;
 
 const APP_SHELL = [
