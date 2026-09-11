@@ -499,12 +499,19 @@
   }
   .bell-dot{
     position:absolute; top:6px; right:7px; width:7px; height:7px; border-radius:50%;
-    background:var(--lime-400); border:1.5px solid var(--green-800);
+    background:var(--lime-400); border:1.5px solid var(--green-800); display:none;
   }
   .topbar-avatar{
     width:38px; height:38px; border-radius:50%; overflow:hidden; position:relative; background:var(--green-500);
     display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px;
   }
+  .notif-list{ max-height:60vh; overflow-y:auto; }
+  .notif-item{ padding:13px 4px; border-bottom:1px solid rgba(0,0,0,.06); }
+  .notif-item.unread{ background:rgba(34,140,74,.06); border-radius:10px; padding-left:10px; padding-right:10px; }
+  .notif-title{ font-weight:700; font-size:14.5px; color:#12351f; }
+  .notif-body{ font-size:13.5px; color:#555; margin-top:2px; }
+  .notif-time{ font-size:12px; color:#999; margin-top:4px; }
+  .notif-empty{ text-align:center; color:#999; padding:30px 0; font-size:14px; }
 
   .wallet-card{
     margin-top:14px;
@@ -1348,7 +1355,7 @@
           <p class="greet-name" id="seekerName">Pencari Jasa</p>
         </div>
         <div class="top-icons">
-          <button class="bell-btn" type="button" data-toast="Notifikasi akan hadir di tahap berikutnya"><span class="bell-dot"></span>🔔</button>
+          <button class="bell-btn" type="button" data-open-notifications><span class="bell-dot"></span>🔔</button>
           <div class="topbar-avatar" id="seekerAvatarInitial">?</div>
         </div>
       </div>
@@ -1392,7 +1399,7 @@
           </div>
         </div>
         <div class="top-icons">
-          <button class="bell-btn" type="button" data-toast="Notifikasi akan hadir di tahap berikutnya"><span class="bell-dot"></span>🔔</button>
+          <button class="bell-btn" type="button" data-open-notifications><span class="bell-dot"></span>🔔</button>
           <div class="topbar-avatar" id="providerAvatarInitial">?</div>
         </div>
       </div>
@@ -1605,6 +1612,8 @@ function showDashboard(role) {
   }
   if (role === 'admin') switchAdminTab('ringkasan');
 
+  if (role === 'seeker' || role === 'provider') refreshNotifBellDot();
+
   setTimeout(() => document.getElementById(map[role]).classList.add('active'), 300);
 }
 
@@ -1658,6 +1667,81 @@ function openModal(html) {
 document.getElementById('modalOverlay').addEventListener('click', (e) => {
   if (e.target.id === 'modalOverlay') closeModal();
 });
+
+/* ============================================================
+   KOTAK MASUK NOTIFIKASI
+   ============================================================ */
+function timeAgoShort(dateStr) {
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'Baru saja';
+  if (mins < 60) return `${mins} menit lalu`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} jam lalu`;
+  const days = Math.floor(hrs / 24);
+  return `${days} hari lalu`;
+}
+
+async function openNotificationInbox() {
+  const userId = AppState.session?.user?.id;
+  if (!userId) return;
+
+  const { data, error } = await sb
+    .from('notifications')
+    .select('id, title, body, url, is_read, created_at')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) {
+    showToast('Gagal memuat notifikasi.');
+    return;
+  }
+
+  const listHtml = (data && data.length)
+    ? data.map((n) => `
+        <div class="notif-item ${n.is_read ? '' : 'unread'}" data-notif-url="${escapeHtml(n.url || '')}">
+          <div class="notif-title">${escapeHtml(n.title)}</div>
+          ${n.body ? `<div class="notif-body">${escapeHtml(n.body)}</div>` : ''}
+          <div class="notif-time">${timeAgoShort(n.created_at)}</div>
+        </div>
+      `).join('')
+    : `<div class="notif-empty">Belum ada notifikasi.</div>`;
+
+  openModal(`
+    <div class="modal-head">
+      <h3>Notifikasi</h3>
+      <button class="modal-close-btn" id="modalCloseBtn">✕</button>
+    </div>
+    <div class="notif-list">${listHtml}</div>
+  `);
+  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+  document.querySelector('.notif-list').addEventListener('click', (e) => {
+    const item = e.target.closest('[data-notif-url]');
+    const url = item?.dataset.notifUrl;
+    if (url) { closeModal(); Router.go(url); }
+  });
+
+  // Tandai semua sudah dibaca + hilangkan titik hijau di topbar
+  const unreadIds = (data || []).filter((n) => !n.is_read).map((n) => n.id);
+  if (unreadIds.length) {
+    await sb.from('notifications').update({ is_read: true }).in('id', unreadIds);
+  }
+  document.querySelectorAll('.bell-dot').forEach((el) => el.style.display = 'none');
+}
+
+async function refreshNotifBellDot() {
+  const userId = AppState.session?.user?.id;
+  if (!userId) return;
+  const { count } = await sb
+    .from('notifications')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('is_read', false);
+  document.querySelectorAll('.bell-dot').forEach((el) => {
+    el.style.display = (count && count > 0) ? 'block' : 'none';
+  });
+}
 
 /* Ambil banyak profil sekaligus (dipakai buat nampilin nama seeker/provider di list) */
 async function fetchProfilesByIds(ids) {
@@ -2609,6 +2693,9 @@ document.getElementById('dashSeeker').addEventListener('click', (e) => {
 
   const notifBtn = e.target.closest('#enableNotifBtn');
   if (notifBtn) { enablePushNotifications(); return; }
+
+  const bellBtn = e.target.closest('[data-open-notifications]');
+  if (bellBtn) { openNotificationInbox(); return; }
 
   const toastBtn = e.target.closest('[data-toast]');
   if (toastBtn) { showToast(toastBtn.dataset.toast); }
@@ -3624,6 +3711,9 @@ document.getElementById('dashProvider').addEventListener('click', (e) => {
 
   const notifBtn = e.target.closest('#enableNotifBtn');
   if (notifBtn) { enablePushNotifications(); return; }
+
+  const bellBtn = e.target.closest('[data-open-notifications]');
+  if (bellBtn) { openNotificationInbox(); return; }
 
   const myServicesBtn = e.target.closest('[data-open-my-services]');
   if (myServicesBtn) { openMyServices(); return; }
