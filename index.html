@@ -3590,9 +3590,27 @@ async function updateNotifButtonState() {
   if (Notification.permission === 'granted') {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.getSubscription();
-    if (sub) {
-      btn.querySelector('.ql').textContent = 'Notifikasi Aktif ✓';
-      btn.disabled = true;
+    const userId = AppState.session?.user?.id;
+    if (sub && userId) {
+      // Subscription lokal ada di browser, tapi belum tentu tersimpan di
+      // database (misalnya sempat gagal sebelumnya) — sinkronkan ulang
+      // secara diam-diam supaya statusnya benar-benar akurat.
+      const subJson = sub.toJSON();
+      const { error } = await sb.from('push_subscriptions').upsert({
+        user_id: userId,
+        endpoint: subJson.endpoint,
+        p256dh: subJson.keys.p256dh,
+        auth: subJson.keys.auth,
+      }, { onConflict: 'endpoint' });
+
+      if (!error) {
+        btn.querySelector('.ql').textContent = 'Notifikasi Aktif ✓';
+        btn.disabled = true;
+      } else {
+        console.warn('Gagal sinkronkan subscription:', error);
+        btn.querySelector('.ql').textContent = 'Aktifkan Notifikasi';
+        btn.disabled = false;
+      }
     }
   }
 }
