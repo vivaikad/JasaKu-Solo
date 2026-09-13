@@ -1718,8 +1718,11 @@ async function openNotificationInbox() {
   document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
   document.querySelector('.notif-list').addEventListener('click', (e) => {
     const item = e.target.closest('[data-notif-url]');
-    const url = item?.dataset.notifUrl;
-    if (url) { closeModal(); Router.go(url); }
+    const target = item?.dataset.notifUrl; // 'pesanan' atau 'chat'
+    if (!target) return;
+    closeModal();
+    if (AppState.role === 'seeker') switchSeekerTab(target);
+    else if (AppState.role === 'provider') switchProviderTab(target);
   });
 
   // Tandai semua sudah dibaca + hilangkan titik hijau di topbar
@@ -4320,7 +4323,9 @@ function registerServiceWorker() {
     });
     navigator.serviceWorker.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'notification-click' && event.data.url) {
-        Router.go(event.data.url);
+        const target = event.data.url; // 'pesanan' atau 'chat'
+        if (AppState.role === 'seeker') switchSeekerTab(target);
+        else if (AppState.role === 'provider') switchProviderTab(target);
       }
     });
   }
