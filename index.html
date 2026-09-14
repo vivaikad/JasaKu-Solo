@@ -623,7 +623,8 @@
     color:#9AAA9D; font-size:10px; font-weight:600; padding:4px 6px;
   }
   .nav-item.active{color:var(--green-600);}
-  .nav-item .ni{font-size:19px; line-height:1;}
+  .nav-item .ni{line-height:1; display:flex;}
+  .nav-item .ni svg{width:21px; height:21px; stroke:currentColor;}
   .nav-fab{
     width:52px; height:52px; border-radius:50%;
     background:var(--green-600); color:#fff;
@@ -969,7 +970,9 @@
   .admin-tab-btn{
     flex:none; background:rgba(255,255,255,.14); color:rgba(255,255,255,.85);
     border:none; border-radius:20px; padding:8px 15px; font-size:12px; font-weight:600; white-space:nowrap;
+    display:inline-flex; align-items:center; gap:5px;
   }
+  .admin-tab-btn svg{width:14px; height:14px; stroke:currentColor; flex:none;}
   .admin-tab-btn.active{background:var(--white); color:var(--green-700);}
 
   /* ============================================================
@@ -1374,11 +1377,11 @@
     <div class="seeker-scroll" id="seekerContent"><!-- dirender oleh JS: renderSeekerHome() dst --></div>
 
     <nav class="bottom-nav">
-      <button class="nav-item" data-seeker-tab="home"><span class="ni">🏠</span>Dashboard</button>
-      <button class="nav-item" data-seeker-tab="pesanan"><span class="ni">📋</span>Pesanan</button>
+      <button class="nav-item" data-seeker-tab="home"><span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>Dashboard</button>
+      <button class="nav-item" data-seeker-tab="pesanan"><span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6"/><path d="M9 16h6"/></svg></span>Pesanan</button>
       <button class="nav-item" data-seeker-tab="pesanjasa"><div class="nav-fab">+</div></button>
-      <button class="nav-item" data-seeker-tab="chat"><span class="ni">💬</span>Chat</button>
-      <button class="nav-item" data-seeker-tab="akun"><span class="ni">👤</span>Akun</button>
+      <button class="nav-item" data-seeker-tab="chat"><span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>Chat</button>
+      <button class="nav-item" data-seeker-tab="akun"><span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>Akun</button>
     </nav>
   </section>
 
@@ -1416,11 +1419,11 @@
     <div class="seeker-scroll" id="providerContent"><!-- dirender oleh JS: renderProviderHome() dst --></div>
 
     <nav class="bottom-nav">
-      <button class="nav-item" data-provider-tab="home"><span class="ni">🏠</span>Dashboard</button>
-      <button class="nav-item" data-provider-tab="pesanan"><span class="ni">📋</span>Pesanan</button>
+      <button class="nav-item" data-provider-tab="home"><span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>Dashboard</button>
+      <button class="nav-item" data-provider-tab="pesanan"><span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6"/><path d="M9 16h6"/></svg></span>Pesanan</button>
       <button class="nav-item" data-provider-tab="ambilorder"><div class="nav-fab">+</div></button>
-      <button class="nav-item" data-provider-tab="chat"><span class="ni">💬</span>Chat</button>
-      <button class="nav-item" data-provider-tab="profil"><span class="ni">👤</span>Profil</button>
+      <button class="nav-item" data-provider-tab="chat"><span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>Chat</button>
+      <button class="nav-item" data-provider-tab="profil"><span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>Profil</button>
     </nav>
   </section>
 
@@ -1438,11 +1441,11 @@
       </div>
     </div>
     <div class="admin-tabs" style="background:var(--green-800); padding-top:12px;">
-      <button class="admin-tab-btn active" data-admin-tab="ringkasan">Ringkasan</button>
-      <button class="admin-tab-btn" data-admin-tab="verifikasi">Verifikasi</button>
-      <button class="admin-tab-btn" data-admin-tab="pengguna">Pengguna</button>
-      <button class="admin-tab-btn" data-admin-tab="pesanan">Pesanan</button>
-      <button class="admin-tab-btn" data-admin-tab="dispute">Dispute</button>
+      <button class="admin-tab-btn active" data-admin-tab="ringkasan"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="13" width="3" height="5"/><rect x="12" y="9" width="3" height="9"/><rect x="17" y="5" width="3" height="13"/></svg>Ringkasan</button>
+      <button class="admin-tab-btn" data-admin-tab="verifikasi"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>Verifikasi</button>
+      <button class="admin-tab-btn" data-admin-tab="pengguna"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Pengguna</button>
+      <button class="admin-tab-btn" data-admin-tab="pesanan"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>Pesanan</button>
+      <button class="admin-tab-btn" data-admin-tab="dispute"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>Dispute</button>
     </div>
     <div class="admin-scroll" id="adminContent"><!-- dirender JS --></div>
   </section>
