@@ -1163,6 +1163,15 @@
     border-radius:12px; padding:14px; font-weight:700; font-size:13.5px;
   }
 
+  .filter-bar{
+    display:flex; gap:7px; overflow-x:auto; padding-bottom:2px; margin-bottom:12px;
+  }
+  .filter-select{
+    flex:none; background:var(--white); border:1.3px solid #DCEBE0; color:var(--ink);
+    border-radius:10px; padding:8px 10px; font-size:12px; font-weight:600;
+    -webkit-appearance:none; appearance:none;
+  }
+
   .request-card{
     background:var(--white); border-radius:14px; padding:14px; margin-bottom:10px;
     box-shadow:0 1px 3px rgba(15,92,42,.06);
@@ -1964,6 +1973,9 @@ async function loadSeekerHome(content) {
   recentEl.innerHTML = recent;
 }
 
+let seekerPesananCache = null;
+let seekerPesananFilter = { status: 'all', category: 'all', period: 'all' };
+
 async function loadSeekerPesanan(content) {
   content.innerHTML = `<div class="section-head"><h3>Pesanan Saya</h3></div><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div>`;
 
@@ -1984,7 +1996,53 @@ async function loadSeekerPesanan(content) {
     return;
   }
 
-  // ---- Bagian: Permintaan Terbuka Saya ----
+  const providerMap = await fetchProfilesByIds(orders.map((o) => o.provider_id));
+  const disputeMap = await fetchDisputesForOrders(orders.map((o) => o.id));
+  const reviewMap = await fetchReviewsForOrders(orders.map((o) => o.id));
+
+  seekerPesananCache = { orders, requests, providerMap, disputeMap, reviewMap };
+  renderSeekerPesananList(content);
+}
+
+function passesOrderFilter(o, filter) {
+  if (filter.status !== 'all' && o.status !== filter.status) return false;
+  if (filter.category !== 'all' && o.category !== filter.category) return false;
+  if (filter.period !== 'all') {
+    const days = Number(filter.period);
+    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+    if (new Date(o.created_at).getTime() < cutoff) return false;
+  }
+  return true;
+}
+
+function orderFilterBarHtml(categories, filter, prefix) {
+  const catOptions = categories.map((c) => `<option value="${escapeHtml(c)}" ${filter.category === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('');
+  return `
+    <div class="filter-bar">
+      <select class="filter-select" id="${prefix}FilterStatus">
+        <option value="all" ${filter.status === 'all' ? 'selected' : ''}>Semua Status</option>
+        <option value="pending" ${filter.status === 'pending' ? 'selected' : ''}>Menunggu</option>
+        <option value="accepted" ${filter.status === 'accepted' ? 'selected' : ''}>Diterima</option>
+        <option value="in_progress" ${filter.status === 'in_progress' ? 'selected' : ''}>Dikerjakan</option>
+        <option value="completed" ${filter.status === 'completed' ? 'selected' : ''}>Selesai</option>
+        <option value="cancelled" ${filter.status === 'cancelled' ? 'selected' : ''}>Dibatalkan</option>
+      </select>
+      <select class="filter-select" id="${prefix}FilterCategory">
+        <option value="all" ${filter.category === 'all' ? 'selected' : ''}>Semua Kategori</option>
+        ${catOptions}
+      </select>
+      <select class="filter-select" id="${prefix}FilterPeriod">
+        <option value="all" ${filter.period === 'all' ? 'selected' : ''}>Semua Waktu</option>
+        <option value="7" ${filter.period === '7' ? 'selected' : ''}>7 Hari Terakhir</option>
+        <option value="30" ${filter.period === '30' ? 'selected' : ''}>30 Hari Terakhir</option>
+        <option value="90" ${filter.period === '90' ? 'selected' : ''}>3 Bulan Terakhir</option>
+      </select>
+    </div>`;
+}
+
+function renderSeekerPesananList(content) {
+  const { orders, requests, providerMap, disputeMap, reviewMap } = seekerPesananCache;
+
   let requestsHtml = '';
   if (requests && requests.length > 0) {
     requestsHtml = `<div class="section-head"><h3>Permintaan Saya</h3></div>` + requests.map((r) => {
@@ -2002,7 +2060,6 @@ async function loadSeekerPesanan(content) {
     }).join('');
   }
 
-  // ---- Bagian: Pesanan Saya (regular orders) ----
   if (orders.length === 0) {
     content.innerHTML = requestsHtml + `
       <div class="section-head"><h3>Pesanan Saya</h3></div>
@@ -2014,37 +2071,40 @@ async function loadSeekerPesanan(content) {
     return;
   }
 
-  const providerMap = await fetchProfilesByIds(orders.map((o) => o.provider_id));
-  const disputeMap = await fetchDisputesForOrders(orders.map((o) => o.id));
-  const reviewMap = await fetchReviewsForOrders(orders.map((o) => o.id));
-  const list = orders.map((o) => {
-    const provName = providerMap[o.provider_id]?.full_name || 'Tukang';
-    const cancelBtn = o.status === 'pending'
-      ? `<div class="oli-actions"><button class="btn-oli danger" data-cancel-order="${o.id}">Batalkan Pesanan</button></div>`
-      : '';
-    const codNote = o.status === 'completed' && o.payment_status === 'unpaid'
-      ? `<div class="verif-reject-note" style="background:#FFF7E8;border-color:#F5E2B8;color:#8a7a4a;margin-top:8px;">Bayar tunai (COD) langsung ke tukang. Tukang akan menandai "Sudah Dibayar" setelah menerima.</div>`
-      : '';
-    const gpsBtn = (o.latitude && o.longitude)
-      ? `<a class="btn-mini-outline" style="display:block;text-align:center;text-decoration:none;margin-top:8px;" href="https://www.google.com/maps?q=${o.latitude},${o.longitude}" target="_blank" rel="noopener">📍 Buka Lokasi di Maps</a>`
-      : '';
-    return `
-      <div class="order-list-item">
-        <div class="oli-top">
-          <span class="oli-title">${escapeHtml(o.category)}</span>
-          <span>${`<span class="status-pill ${o.status}">${ORDER_STATUS_LABEL[o.status]}</span>` + paymentBadgeHtml(o)}</span>
-        </div>
-        <div class="oli-sub">Tukang: ${escapeHtml(provName)} · ${new Date(o.created_at).toLocaleDateString('id-ID')}${o.note ? ' · "' + escapeHtml(o.note) + '"' : ''}</div>
-        <div class="oli-price">${formatRupiah(o.price)}</div>
-        ${gpsBtn}
-        ${codNote}
-        ${cancelBtn}
-        ${ratingActionHtml(o, reviewMap[o.id])}
-        ${disputeActionHtml(o, disputeMap[o.id])}
-      </div>`;
-  }).join('');
+  const categories = [...new Set(orders.map((o) => o.category))].sort();
+  const filterBar = orderFilterBarHtml(categories, seekerPesananFilter, 'seeker');
+  const filtered = orders.filter((o) => passesOrderFilter(o, seekerPesananFilter));
 
-  content.innerHTML = requestsHtml + `<div class="section-head"><h3>Pesanan Saya</h3></div>${list}`;
+  const listBody = filtered.length === 0
+    ? `<div class="empty-state"><div class="ico">🔍</div><h4>Tidak ada pesanan yang cocok</h4><p>Coba ubah filter di atas.</p></div>`
+    : filtered.map((o) => {
+        const provName = providerMap[o.provider_id]?.full_name || 'Tukang';
+        const cancelBtn = o.status === 'pending'
+          ? `<div class="oli-actions"><button class="btn-oli danger" data-cancel-order="${o.id}">Batalkan Pesanan</button></div>`
+          : '';
+        const codNote = o.status === 'completed' && o.payment_status === 'unpaid'
+          ? `<div class="verif-reject-note" style="background:#FFF7E8;border-color:#F5E2B8;color:#8a7a4a;margin-top:8px;">Bayar tunai (COD) langsung ke tukang. Tukang akan menandai "Sudah Dibayar" setelah menerima.</div>`
+          : '';
+        const gpsBtn = (o.latitude && o.longitude)
+          ? `<a class="btn-mini-outline" style="display:block;text-align:center;text-decoration:none;margin-top:8px;" href="https://www.google.com/maps?q=${o.latitude},${o.longitude}" target="_blank" rel="noopener">📍 Buka Lokasi di Maps</a>`
+          : '';
+        return `
+          <div class="order-list-item">
+            <div class="oli-top">
+              <span class="oli-title">${escapeHtml(o.category)}</span>
+              <span>${`<span class="status-pill ${o.status}">${ORDER_STATUS_LABEL[o.status]}</span>` + paymentBadgeHtml(o)}</span>
+            </div>
+            <div class="oli-sub">Tukang: ${escapeHtml(provName)} · ${new Date(o.created_at).toLocaleDateString('id-ID')}${o.note ? ' · "' + escapeHtml(o.note) + '"' : ''}</div>
+            <div class="oli-price">${formatRupiah(o.price)}</div>
+            ${gpsBtn}
+            ${codNote}
+            ${cancelBtn}
+            ${ratingActionHtml(o, reviewMap[o.id])}
+            ${disputeActionHtml(o, disputeMap[o.id])}
+          </div>`;
+      }).join('');
+
+  content.innerHTML = requestsHtml + `<div class="section-head"><h3>Pesanan Saya (${filtered.length})</h3></div>${filterBar}${listBody}`;
 }
 
 async function loadSeekerChat(content) {
@@ -2765,6 +2825,18 @@ document.getElementById('dashSeeker').addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) uploadAvatar(file);
   }
+  if (e.target && e.target.id === 'seekerFilterStatus') {
+    seekerPesananFilter.status = e.target.value;
+    renderSeekerPesananList(document.getElementById('seekerContent'));
+  }
+  if (e.target && e.target.id === 'seekerFilterCategory') {
+    seekerPesananFilter.category = e.target.value;
+    renderSeekerPesananList(document.getElementById('seekerContent'));
+  }
+  if (e.target && e.target.id === 'seekerFilterPeriod') {
+    seekerPesananFilter.period = e.target.value;
+    renderSeekerPesananList(document.getElementById('seekerContent'));
+  }
 });
 
 /* ============================================================
@@ -2900,6 +2972,9 @@ async function loadProviderHome(content) {
   }).join('');
 }
 
+let providerPesananCache = null;
+let providerPesananFilter = { status: 'all', category: 'all', period: 'all' };
+
 async function loadProviderPesanan(content) {
   content.innerHTML = `<div class="section-head"><h3>Pesanan Masuk</h3></div><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div>`;
 
@@ -2933,45 +3008,59 @@ async function loadProviderPesanan(content) {
     const { data: pf } = await sb.from('portfolio_photos').select('order_id').in('order_id', completedIds);
     portfolioOrderIds = new Set((pf || []).map((p) => p.order_id));
   }
-  const list = orders.map((o) => {
-    o.hasPortfolio = portfolioOrderIds.has(o.id);
-    const seekerName = seekerMap[o.seeker_id]?.full_name || 'Pencari Jasa';
-    let actions = '';
-    if (o.status === 'pending') {
-      actions = `<div class="oli-actions">
-        <button class="btn-oli primary" data-order-action='{"id":"${o.id}","status":"accepted"}'>Terima</button>
-        <button class="btn-oli danger" data-order-action='{"id":"${o.id}","status":"cancelled"}'>Tolak</button>
-      </div>`;
-    } else if (o.status === 'accepted') {
-      actions = `<div class="oli-actions"><button class="btn-oli primary" data-order-action='{"id":"${o.id}","status":"in_progress"}'>Mulai Kerjakan</button></div>`;
-    } else if (o.status === 'in_progress') {
-      actions = `<div class="oli-actions"><button class="btn-oli primary" data-order-action='{"id":"${o.id}","status":"completed"}'>Tandai Selesai</button></div>`;
-    } else if (o.status === 'completed' && o.payment_status === 'unpaid') {
-      actions = `<div class="oli-actions"><button class="btn-oli primary" data-mark-paid="${o.id}">💵 Tandai Sudah Dibayar (COD)</button></div>`;
-    }
-    if (o.status === 'completed') {
-      actions += o.hasPortfolio
-        ? `<div class="oli-actions"><button class="btn-oli" data-view-portfolio="${o.id}">📸 Lihat Foto Portofolio</button></div>`
-        : `<div class="oli-actions"><button class="btn-oli" data-upload-portfolio='${JSON.stringify({ id: o.id, category: o.category }).replace(/'/g, "&#39;")}'>📸 Upload Foto Sebelum/Sesudah</button></div>`;
-    }
-    const gpsBtn = (o.latitude && o.longitude)
-      ? `<a class="btn-mini-outline" style="display:block;text-align:center;text-decoration:none;margin-top:8px;" href="https://www.google.com/maps?q=${o.latitude},${o.longitude}" target="_blank" rel="noopener">📍 Buka Lokasi di Maps</a>`
-      : '';
-    return `
-      <div class="order-list-item">
-        <div class="oli-top">
-          <span class="oli-title">${escapeHtml(o.category)}</span>
-          <span>${`<span class="status-pill ${o.status}">${ORDER_STATUS_LABEL[o.status]}</span>` + paymentBadgeHtml(o)}</span>
-        </div>
-        <div class="oli-sub">dari ${escapeHtml(seekerName)} · ${new Date(o.created_at).toLocaleDateString('id-ID')}${o.note ? ' · "' + escapeHtml(o.note) + '"' : ''}</div>
-        <div class="oli-price">${formatRupiah(o.price)}</div>
-        ${gpsBtn}
-        ${actions}
-        ${disputeActionHtml(o, disputeMap[o.id])}
-      </div>`;
-  }).join('');
+  orders.forEach((o) => { o.hasPortfolio = portfolioOrderIds.has(o.id); });
 
-  content.innerHTML = `<div class="section-head"><h3>Pesanan Masuk</h3></div>${list}`;
+  providerPesananCache = { orders, seekerMap, disputeMap };
+  renderProviderPesananList(content);
+}
+
+function renderProviderPesananList(content) {
+  const { orders, seekerMap, disputeMap } = providerPesananCache;
+
+  const categories = [...new Set(orders.map((o) => o.category))].sort();
+  const filterBar = orderFilterBarHtml(categories, providerPesananFilter, 'provider');
+  const filtered = orders.filter((o) => passesOrderFilter(o, providerPesananFilter));
+
+  const listBody = filtered.length === 0
+    ? `<div class="empty-state"><div class="ico">🔍</div><h4>Tidak ada pesanan yang cocok</h4><p>Coba ubah filter di atas.</p></div>`
+    : filtered.map((o) => {
+        const seekerName = seekerMap[o.seeker_id]?.full_name || 'Pencari Jasa';
+        let actions = '';
+        if (o.status === 'pending') {
+          actions = `<div class="oli-actions">
+            <button class="btn-oli primary" data-order-action='{"id":"${o.id}","status":"accepted"}'>Terima</button>
+            <button class="btn-oli danger" data-order-action='{"id":"${o.id}","status":"cancelled"}'>Tolak</button>
+          </div>`;
+        } else if (o.status === 'accepted') {
+          actions = `<div class="oli-actions"><button class="btn-oli primary" data-order-action='{"id":"${o.id}","status":"in_progress"}'>Mulai Kerjakan</button></div>`;
+        } else if (o.status === 'in_progress') {
+          actions = `<div class="oli-actions"><button class="btn-oli primary" data-order-action='{"id":"${o.id}","status":"completed"}'>Tandai Selesai</button></div>`;
+        } else if (o.status === 'completed' && o.payment_status === 'unpaid') {
+          actions = `<div class="oli-actions"><button class="btn-oli primary" data-mark-paid="${o.id}">💵 Tandai Sudah Dibayar (COD)</button></div>`;
+        }
+        if (o.status === 'completed') {
+          actions += o.hasPortfolio
+            ? `<div class="oli-actions"><button class="btn-oli" data-view-portfolio="${o.id}">📸 Lihat Foto Portofolio</button></div>`
+            : `<div class="oli-actions"><button class="btn-oli" data-upload-portfolio='${JSON.stringify({ id: o.id, category: o.category }).replace(/'/g, "&#39;")}'>📸 Upload Foto Sebelum/Sesudah</button></div>`;
+        }
+        const gpsBtn = (o.latitude && o.longitude)
+          ? `<a class="btn-mini-outline" style="display:block;text-align:center;text-decoration:none;margin-top:8px;" href="https://www.google.com/maps?q=${o.latitude},${o.longitude}" target="_blank" rel="noopener">📍 Buka Lokasi di Maps</a>`
+          : '';
+        return `
+          <div class="order-list-item">
+            <div class="oli-top">
+              <span class="oli-title">${escapeHtml(o.category)}</span>
+              <span>${`<span class="status-pill ${o.status}">${ORDER_STATUS_LABEL[o.status]}</span>` + paymentBadgeHtml(o)}</span>
+            </div>
+            <div class="oli-sub">dari ${escapeHtml(seekerName)} · ${new Date(o.created_at).toLocaleDateString('id-ID')}${o.note ? ' · "' + escapeHtml(o.note) + '"' : ''}</div>
+            <div class="oli-price">${formatRupiah(o.price)}</div>
+            ${gpsBtn}
+            ${actions}
+            ${disputeActionHtml(o, disputeMap[o.id])}
+          </div>`;
+      }).join('');
+
+  content.innerHTML = `<div class="section-head"><h3>Pesanan Masuk (${filtered.length})</h3></div>${filterBar}${listBody}`;
 }
 
 async function updateOrderStatus(orderId, status) {
@@ -3949,6 +4038,18 @@ document.getElementById('dashProvider').addEventListener('change', (e) => {
   if (e.target && e.target.id === 'avatarFileInput') {
     const file = e.target.files[0];
     if (file) uploadAvatar(file);
+  }
+  if (e.target && e.target.id === 'providerFilterStatus') {
+    providerPesananFilter.status = e.target.value;
+    renderProviderPesananList(document.getElementById('providerContent'));
+  }
+  if (e.target && e.target.id === 'providerFilterCategory') {
+    providerPesananFilter.category = e.target.value;
+    renderProviderPesananList(document.getElementById('providerContent'));
+  }
+  if (e.target && e.target.id === 'providerFilterPeriod') {
+    providerPesananFilter.period = e.target.value;
+    renderProviderPesananList(document.getElementById('providerContent'));
   }
 });
 
