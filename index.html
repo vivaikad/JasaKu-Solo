@@ -1135,6 +1135,19 @@
   .review-item .rv-comment{font-size:12.5px; color:#4a5a4d; line-height:1.55; margin-top:4px;}
   .review-item .rv-date{font-size:10.5px; color:#9AAA9D; margin-top:4px;}
 
+  /* Portofolio foto sebelum/sesudah */
+  .portfolio-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;}
+  .portfolio-card{
+    background:var(--white); border-radius:14px; overflow:hidden; cursor:pointer;
+    box-shadow:0 1px 3px rgba(15,92,42,.06);
+  }
+  .portfolio-card .pc-images{display:grid; grid-template-columns:1fr 1fr; gap:1px; background:#EAF2EC;}
+  .portfolio-card .pc-images img{width:100%; height:82px; object-fit:cover; display:block;}
+  .portfolio-card .pc-cat{font-size:11px; font-weight:600; color:#3f4f43; padding:7px 9px;}
+  .portfolio-compare{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;}
+  .portfolio-compare img{width:100%; border-radius:12px; display:block;}
+  .portfolio-compare .pf-label{font-size:11.5px; font-weight:700; color:#3f4f43; margin-bottom:5px; text-align:center;}
+
   /* ============================================================
      16. BUAT PERMINTAAN (OPEN REQUEST)
      ============================================================ */
@@ -2169,13 +2182,14 @@ async function openProviderDetail(providerId) {
 
   const myId = AppState.session?.user?.id;
 
-  const [profileMap, basicVerif, ktpVerif, { data: myOrders }, { data: services }, { data: reviews }] = await Promise.all([
+  const [profileMap, basicVerif, ktpVerif, { data: myOrders }, { data: services }, { data: reviews }, { data: portfolio }] = await Promise.all([
     fetchProfilesByIds([providerId]),
     fetchLatestVerification(providerId, 'basic'),
     fetchLatestVerification(providerId, 'ktp'),
     sb.from('orders').select('id').eq('seeker_id', myId).eq('provider_id', providerId).limit(1),
     sb.from('services').select('id, category, title, description, price').eq('provider_id', providerId).order('created_at', { ascending: false }),
     sb.from('reviews').select('id, rating, comment, seeker_id, created_at').eq('provider_id', providerId).order('created_at', { ascending: false }),
+    sb.from('portfolio_photos').select('id, category, before_path, after_path, caption').eq('provider_id', providerId).order('created_at', { ascending: false }),
   ]);
 
   const provider = profileMap[providerId] || {};
@@ -2228,6 +2242,25 @@ async function openProviderDetail(providerId) {
     `;
   }
 
+  const portfolioHtml = (portfolio && portfolio.length)
+    ? `
+      <div class="section-head"><h3>Portofolio (${portfolio.length})</h3></div>
+      <div class="portfolio-grid">
+        ${portfolio.map((p) => {
+          const beforeUrl = sb.storage.from('portfolio-photos').getPublicUrl(p.before_path).data.publicUrl;
+          const afterUrl = sb.storage.from('portfolio-photos').getPublicUrl(p.after_path).data.publicUrl;
+          return `
+            <div class="portfolio-card" data-portfolio-preview='${JSON.stringify({ before: beforeUrl, after: afterUrl, caption: p.caption || '', category: p.category }).replace(/'/g, "&#39;")}'>
+              <div class="pc-images">
+                <img src="${beforeUrl}" alt="Sebelum">
+                <img src="${afterUrl}" alt="Sesudah">
+              </div>
+              <div class="pc-cat">${escapeHtml(p.category)}</div>
+            </div>`;
+        }).join('')}
+      </div>`
+    : '';
+
   content.innerHTML = `
     <div class="back-row"><button class="back-btn" data-back-to-seeker-home>←</button><h3>Profil Tukang</h3></div>
     <div class="provider-detail-card">
@@ -2239,6 +2272,7 @@ async function openProviderDetail(providerId) {
     ${infoBlock}
     <div class="section-head"><h3>Layanan yang Ditawarkan</h3></div>
     ${svcHtml}
+    ${portfolioHtml}
     ${reviewsHtml}
   `;
 }
@@ -2698,6 +2732,24 @@ document.getElementById('dashSeeker').addEventListener('click', (e) => {
   const editAvatarBtn = e.target.closest('#editSeekerAvatarBtn');
   if (editAvatarBtn) { document.getElementById('seekerAvatarFileInput').click(); return; }
 
+  const pfCard = e.target.closest('[data-portfolio-preview]');
+  if (pfCard) {
+    const p = JSON.parse(pfCard.dataset.portfolioPreview);
+    openModal(`
+      <div class="modal-head">
+        <h3>Portofolio — ${escapeHtml(p.category)}</h3>
+        <button class="modal-close-btn" id="modalCloseBtn">✕</button>
+      </div>
+      <div class="portfolio-compare">
+        <div><div class="pf-label">Sebelum</div><img src="${p.before}" alt="Sebelum"></div>
+        <div><div class="pf-label">Sesudah</div><img src="${p.after}" alt="Sesudah"></div>
+      </div>
+      ${p.caption ? `<div class="modal-summary">${escapeHtml(p.caption)}</div>` : ''}
+    `);
+    document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+    return;
+  }
+
   const notifBtn = e.target.closest('#enableNotifBtn');
   if (notifBtn) { enablePushNotifications(); return; }
 
@@ -2875,7 +2927,14 @@ async function loadProviderPesanan(content) {
 
   const seekerMap = await fetchProfilesByIds(orders.map((o) => o.seeker_id));
   const disputeMap = await fetchDisputesForOrders(orders.map((o) => o.id));
+  const completedIds = orders.filter((o) => o.status === 'completed').map((o) => o.id);
+  let portfolioOrderIds = new Set();
+  if (completedIds.length) {
+    const { data: pf } = await sb.from('portfolio_photos').select('order_id').in('order_id', completedIds);
+    portfolioOrderIds = new Set((pf || []).map((p) => p.order_id));
+  }
   const list = orders.map((o) => {
+    o.hasPortfolio = portfolioOrderIds.has(o.id);
     const seekerName = seekerMap[o.seeker_id]?.full_name || 'Pencari Jasa';
     let actions = '';
     if (o.status === 'pending') {
@@ -2889,6 +2948,11 @@ async function loadProviderPesanan(content) {
       actions = `<div class="oli-actions"><button class="btn-oli primary" data-order-action='{"id":"${o.id}","status":"completed"}'>Tandai Selesai</button></div>`;
     } else if (o.status === 'completed' && o.payment_status === 'unpaid') {
       actions = `<div class="oli-actions"><button class="btn-oli primary" data-mark-paid="${o.id}">💵 Tandai Sudah Dibayar (COD)</button></div>`;
+    }
+    if (o.status === 'completed') {
+      actions += o.hasPortfolio
+        ? `<div class="oli-actions"><button class="btn-oli" data-view-portfolio="${o.id}">📸 Lihat Foto Portofolio</button></div>`
+        : `<div class="oli-actions"><button class="btn-oli" data-upload-portfolio='${JSON.stringify({ id: o.id, category: o.category }).replace(/'/g, "&#39;")}'>📸 Upload Foto Sebelum/Sesudah</button></div>`;
     }
     const gpsBtn = (o.latitude && o.longitude)
       ? `<a class="btn-mini-outline" style="display:block;text-align:center;text-decoration:none;margin-top:8px;" href="https://www.google.com/maps?q=${o.latitude},${o.longitude}" target="_blank" rel="noopener">📍 Buka Lokasi di Maps</a>`
@@ -2922,6 +2986,116 @@ async function markOrderPaid(orderId) {
   if (error) { showToast('Gagal menandai pembayaran.'); return; }
   showToast('Pembayaran ditandai diterima ✓');
   loadProviderPesanan(document.getElementById('providerContent'));
+}
+
+/* ============================================================
+   PORTOFOLIO FOTO SEBELUM/SESUDAH
+   ============================================================ */
+let portfolioBeforeFile = null;
+let portfolioAfterFile = null;
+
+function openPortfolioUploadModal(order) {
+  portfolioBeforeFile = null;
+  portfolioAfterFile = null;
+  openModal(`
+    <div class="modal-head">
+      <h3>Upload Foto Portofolio</h3>
+      <button class="modal-close-btn" id="modalCloseBtn">✕</button>
+    </div>
+    <div class="modal-summary">Pesanan: <b>${escapeHtml(order.category)}</b></div>
+    <div class="field">
+      <label>Foto Sebelum</label>
+      <button type="button" class="btn-mini-outline" id="pickBeforeBtn" style="width:100%;">📷 Pilih Foto Sebelum</button>
+      <div class="status-note" id="beforeStatus" style="margin-top:6px;"></div>
+    </div>
+    <div class="field">
+      <label>Foto Sesudah</label>
+      <button type="button" class="btn-mini-outline" id="pickAfterBtn" style="width:100%;">📷 Pilih Foto Sesudah</button>
+      <div class="status-note" id="afterStatus" style="margin-top:6px;"></div>
+    </div>
+    <div class="field">
+      <label>Keterangan (opsional)</label>
+      <div class="input-wrap"><input type="text" id="portfolioCaption" placeholder="Contoh: Perbaikan pipa bocor di dapur"></div>
+    </div>
+    <input type="file" accept="image/*" id="beforeFileInput" style="display:none;">
+    <input type="file" accept="image/*" id="afterFileInput" style="display:none;">
+    <button class="btn-primary" id="submitPortfolioBtn"><span class="btn-label">Simpan ke Portofolio</span></button>
+  `);
+
+  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+  document.getElementById('pickBeforeBtn').addEventListener('click', () => document.getElementById('beforeFileInput').click());
+  document.getElementById('pickAfterBtn').addEventListener('click', () => document.getElementById('afterFileInput').click());
+  document.getElementById('beforeFileInput').addEventListener('change', (e) => {
+    portfolioBeforeFile = e.target.files[0] || null;
+    document.getElementById('beforeStatus').textContent = portfolioBeforeFile ? `✓ ${portfolioBeforeFile.name}` : '';
+  });
+  document.getElementById('afterFileInput').addEventListener('change', (e) => {
+    portfolioAfterFile = e.target.files[0] || null;
+    document.getElementById('afterStatus').textContent = portfolioAfterFile ? `✓ ${portfolioAfterFile.name}` : '';
+  });
+  document.getElementById('submitPortfolioBtn').addEventListener('click', () => submitPortfolioPhotos(order));
+}
+
+async function submitPortfolioPhotos(order) {
+  if (!portfolioBeforeFile || !portfolioAfterFile) {
+    showToast('Pilih foto sebelum dan sesudah dulu ya.');
+    return;
+  }
+  const userId = AppState.session?.user?.id;
+  const btn = document.getElementById('submitPortfolioBtn');
+  btn.disabled = true;
+  btn.querySelector('.btn-label').textContent = 'Mengunggah…';
+
+  try {
+    const beforePath = `${userId}/${order.id}-before-${Date.now()}.jpg`;
+    const afterPath = `${userId}/${order.id}-after-${Date.now()}.jpg`;
+
+    const { error: beforeErr } = await sb.storage.from('portfolio-photos').upload(beforePath, portfolioBeforeFile);
+    if (beforeErr) throw beforeErr;
+    const { error: afterErr } = await sb.storage.from('portfolio-photos').upload(afterPath, portfolioAfterFile);
+    if (afterErr) throw afterErr;
+
+    const caption = document.getElementById('portfolioCaption').value.trim();
+    const { error: insertErr } = await sb.from('portfolio_photos').insert({
+      order_id: order.id,
+      provider_id: userId,
+      category: order.category,
+      before_path: beforePath,
+      after_path: afterPath,
+      caption: caption || null,
+    });
+    if (insertErr) throw insertErr;
+
+    showToast('Foto portofolio berhasil disimpan ✓');
+    closeModal();
+    loadProviderPesanan(document.getElementById('providerContent'));
+  } catch (err) {
+    console.warn('Gagal upload portofolio:', err);
+    showToast('Gagal menyimpan foto portofolio. Coba lagi.');
+    btn.disabled = false;
+    btn.querySelector('.btn-label').textContent = 'Simpan ke Portofolio';
+  }
+}
+
+async function viewPortfolioPhoto(orderId) {
+  const { data, error } = await sb.from('portfolio_photos').select('*').eq('order_id', orderId).single();
+  if (error || !data) { showToast('Gagal memuat foto portofolio.'); return; }
+
+  const beforeUrl = sb.storage.from('portfolio-photos').getPublicUrl(data.before_path).data.publicUrl;
+  const afterUrl = sb.storage.from('portfolio-photos').getPublicUrl(data.after_path).data.publicUrl;
+
+  openModal(`
+    <div class="modal-head">
+      <h3>Foto Portofolio</h3>
+      <button class="modal-close-btn" id="modalCloseBtn">✕</button>
+    </div>
+    <div class="portfolio-compare">
+      <div><div class="pf-label">Sebelum</div><img src="${beforeUrl}" alt="Sebelum"></div>
+      <div><div class="pf-label">Sesudah</div><img src="${afterUrl}" alt="Sesudah"></div>
+    </div>
+    ${data.caption ? `<div class="modal-summary">${escapeHtml(data.caption)}</div>` : ''}
+  `);
+  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
 }
 
 async function loadProviderChat(content) {
@@ -3721,6 +3895,12 @@ document.getElementById('dashProvider').addEventListener('click', (e) => {
 
   const bellBtn = e.target.closest('[data-open-notifications]');
   if (bellBtn) { openNotificationInbox(); return; }
+
+  const uploadPfBtn = e.target.closest('[data-upload-portfolio]');
+  if (uploadPfBtn) { openPortfolioUploadModal(JSON.parse(uploadPfBtn.dataset.uploadPortfolio)); return; }
+
+  const viewPfBtn = e.target.closest('[data-view-portfolio]');
+  if (viewPfBtn) { viewPortfolioPhoto(viewPfBtn.dataset.viewPortfolio); return; }
 
   const myServicesBtn = e.target.closest('[data-open-my-services]');
   if (myServicesBtn) { openMyServices(); return; }
