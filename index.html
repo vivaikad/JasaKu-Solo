@@ -1148,6 +1148,25 @@
   .portfolio-compare img{width:100%; border-radius:12px; display:block;}
   .portfolio-compare .pf-label{font-size:11.5px; font-weight:700; color:#3f4f43; margin-bottom:5px; text-align:center;}
 
+  /* Banner — kartu manajemen di Admin */
+  .banner-admin-card{
+    background:var(--white); border-radius:14px; overflow:hidden; margin-bottom:14px;
+    box-shadow:0 1px 3px rgba(15,92,42,.06);
+  }
+  .banner-admin-card.inactive{opacity:.55;}
+  .banner-admin-card img{width:100%; height:110px; object-fit:cover; display:block;}
+  .banner-admin-card .ba-meta{display:flex; align-items:center; gap:8px; padding:10px 12px 0;}
+  .banner-admin-card .ba-target{font-size:12px; color:#666; font-weight:600;}
+  .banner-admin-card .oli-actions{padding:10px 12px 12px;}
+
+  /* Banner — carousel di beranda Seeker/Provider */
+  .banner-carousel{
+    display:flex; gap:10px; overflow-x:auto; padding-bottom:2px; margin-bottom:18px;
+    scroll-snap-type:x mandatory;
+  }
+  .banner-slide{flex:none; width:88%; scroll-snap-align:start;}
+  .banner-slide img{width:100%; border-radius:14px; display:block; box-shadow:0 2px 8px rgba(15,92,42,.10);}
+
   /* ============================================================
      16. BUAT PERMINTAAN (OPEN REQUEST)
      ============================================================ */
@@ -1469,6 +1488,7 @@
       <button class="admin-tab-btn" data-admin-tab="pengguna"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Pengguna</button>
       <button class="admin-tab-btn" data-admin-tab="pesanan"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>Pesanan</button>
       <button class="admin-tab-btn" data-admin-tab="dispute"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>Dispute</button>
+      <button class="admin-tab-btn" data-admin-tab="banner"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10.5" r="1.5"/><path d="m21 16-5-5L5 21"/></svg>Banner</button>
     </div>
     <div class="admin-scroll" id="adminContent"><!-- dirender JS --></div>
   </section>
@@ -1900,6 +1920,25 @@ function openCategoryPickerModal() {
   });
 }
 
+async function loadHomeBanners(elId, role) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const { data: banners } = await sb
+    .from('banners')
+    .select('id, image_path, target, link_url')
+    .eq('is_active', true)
+    .in('target', [role, 'both'])
+    .order('sort_order', { ascending: true });
+
+  if (!banners || banners.length === 0) { el.innerHTML = ''; return; }
+
+  el.innerHTML = `<div class="banner-carousel">${banners.map((b) => {
+    const url = sb.storage.from('banners').getPublicUrl(b.image_path).data.publicUrl;
+    const img = `<img src="${url}" alt="Banner">`;
+    return `<div class="banner-slide">${b.link_url ? `<a href="${escapeHtml(b.link_url)}" target="_blank" rel="noopener">${img}</a>` : img}</div>`;
+  }).join('')}</div>`;
+}
+
 async function loadSeekerHome(content) {
   const catHtml = SEEKER_CATEGORIES.map((c) =>
     `<button class="cat-item" data-browse-category="${escapeHtml(c.label)}">
@@ -1909,6 +1948,7 @@ async function loadSeekerHome(content) {
   ).join('');
 
   content.innerHTML = `
+    <div id="seekerBannerCarousel"></div>
     <div class="section-head"><h3>Kategori Populer</h3></div>
     <div class="cat-grid">${catHtml}</div>
     <div class="section-head"><h3>Status Pesanan Anda</h3></div>
@@ -1922,6 +1962,7 @@ async function loadSeekerHome(content) {
     <div class="section-head"><h3>Pesanan Terakhir</h3></div>
     <div id="seekerRecentOrders"><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div></div>
   `;
+  loadHomeBanners('seekerBannerCarousel', 'seeker');
 
   const userId = AppState.session?.user?.id;
   const { data: orders, error } = await sb
@@ -2868,6 +2909,7 @@ function switchProviderTab(tab) {
 
 async function loadProviderHome(content) {
   content.innerHTML = `
+    <div id="providerBannerCarousel"></div>
     <div class="section-head"><h3>Ringkasan Hari Ini</h3></div>
     <div class="stat-grid-5" id="providerStatGrid"><div class="mini-loading"><span class="dot-spin"></span>Memuat…</div></div>
     <div class="section-head"><h3>Pesanan Terbaru</h3></div>
@@ -2891,6 +2933,7 @@ async function loadProviderHome(content) {
       </div>
     </div>
   `;
+  loadHomeBanners('providerBannerCarousel', 'provider');
 
   const userId = AppState.session?.user?.id;
   const [{ data: orders, error }, { data: myReviews }] = await Promise.all([
@@ -4087,6 +4130,7 @@ function switchAdminTab(tab) {
   else if (tab === 'pengguna') loadAdminPengguna(content);
   else if (tab === 'pesanan') loadAdminPesanan(content);
   else if (tab === 'dispute') loadAdminDispute(content);
+  else if (tab === 'banner') loadAdminBanner(content);
 }
 
 async function loadAdminRingkasan(content) {
@@ -4350,6 +4394,139 @@ async function resolveDispute(disputeId, action, orderId) {
   loadAdminDispute(document.getElementById('adminContent'));
 }
 
+/* ============================================================
+   ADMIN — KELOLA BANNER BERANDA (Seeker/Provider)
+   ============================================================ */
+const BANNER_TARGET_LABEL = { seeker: 'Beranda Seeker', provider: 'Beranda Provider', both: 'Keduanya' };
+
+async function loadAdminBanner(content) {
+  content.innerHTML = `<div class="mini-loading"><span class="dot-spin"></span>Memuat…</div>`;
+
+  const { data: banners, error } = await sb
+    .from('banners')
+    .select('id, image_path, target, link_url, is_active, sort_order, created_at')
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    content.innerHTML = `<div class="empty-state"><div class="ico">⚠️</div><h4>Gagal memuat banner</h4></div>`;
+    return;
+  }
+
+  const listHtml = (banners && banners.length)
+    ? banners.map((b) => {
+        const url = sb.storage.from('banners').getPublicUrl(b.image_path).data.publicUrl;
+        return `
+          <div class="banner-admin-card ${b.is_active ? '' : 'inactive'}">
+            <img src="${url}" alt="Banner">
+            <div class="ba-meta">
+              <span class="status-pill ${b.is_active ? 'accepted' : 'cancelled'}">${b.is_active ? 'Aktif' : 'Nonaktif'}</span>
+              <span class="ba-target">${BANNER_TARGET_LABEL[b.target]}</span>
+            </div>
+            <div class="oli-actions">
+              <button class="btn-oli" data-toggle-banner='${JSON.stringify({ id: b.id, active: !b.is_active })}'>${b.is_active ? 'Nonaktifkan' : 'Aktifkan'}</button>
+              <button class="btn-oli danger" data-delete-banner='${JSON.stringify({ id: b.id, path: b.image_path })}'>Hapus</button>
+            </div>
+          </div>`;
+      }).join('')
+    : `<div class="empty-state"><div class="ico">🖼️</div><h4>Belum ada banner</h4><p>Tambahkan banner promosi buat beranda Seeker/Provider.</p></div>`;
+
+  content.innerHTML = `
+    <div class="section-head"><h3>Kelola Banner (${banners ? banners.length : 0})</h3></div>
+    <button class="btn-primary" id="addBannerBtn" style="margin-bottom:16px;"><span class="btn-label">+ Tambah Banner</span></button>
+    ${listHtml}`;
+
+  document.getElementById('addBannerBtn').addEventListener('click', openBannerUploadModal);
+}
+
+let bannerUploadFile = null;
+
+function openBannerUploadModal() {
+  bannerUploadFile = null;
+  openModal(`
+    <div class="modal-head">
+      <h3>Tambah Banner</h3>
+      <button class="modal-close-btn" id="modalCloseBtn">✕</button>
+    </div>
+    <div class="field">
+      <label>Gambar Banner</label>
+      <button type="button" class="btn-mini-outline" id="pickBannerBtn" style="width:100%;">🖼️ Pilih Gambar</button>
+      <div class="status-note" id="bannerFileStatus" style="margin-top:6px;"></div>
+    </div>
+    <div class="field">
+      <label>Tampilkan di</label>
+      <select class="filter-select" id="bannerTargetSelect" style="width:100%;">
+        <option value="both">Beranda Seeker & Provider</option>
+        <option value="seeker">Beranda Seeker saja</option>
+        <option value="provider">Beranda Provider saja</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Link Tujuan (opsional)</label>
+      <div class="input-wrap"><input type="text" id="bannerLinkInput" placeholder="https://..."></div>
+    </div>
+    <input type="file" accept="image/*" id="bannerFileInput" style="display:none;">
+    <button class="btn-primary" id="submitBannerBtn"><span class="btn-label">Simpan Banner</span></button>
+  `);
+
+  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+  document.getElementById('pickBannerBtn').addEventListener('click', () => document.getElementById('bannerFileInput').click());
+  document.getElementById('bannerFileInput').addEventListener('change', (e) => {
+    bannerUploadFile = e.target.files[0] || null;
+    document.getElementById('bannerFileStatus').textContent = bannerUploadFile ? `✓ ${bannerUploadFile.name}` : '';
+  });
+  document.getElementById('submitBannerBtn').addEventListener('click', submitBannerUpload);
+}
+
+async function submitBannerUpload() {
+  if (!bannerUploadFile) { showToast('Pilih gambar dulu ya.'); return; }
+  const userId = AppState.session?.user?.id;
+  const btn = document.getElementById('submitBannerBtn');
+  btn.disabled = true;
+  btn.querySelector('.btn-label').textContent = 'Mengunggah…';
+
+  try {
+    const path = `${Date.now()}-${bannerUploadFile.name.replace(/[^a-zA-Z0-9.\-_]/g, '')}`;
+    const { error: uploadErr } = await sb.storage.from('banners').upload(path, bannerUploadFile);
+    if (uploadErr) throw uploadErr;
+
+    const target = document.getElementById('bannerTargetSelect').value;
+    const linkUrl = document.getElementById('bannerLinkInput').value.trim();
+
+    const { error: insertErr } = await sb.from('banners').insert({
+      image_path: path,
+      target,
+      link_url: linkUrl || null,
+      created_by: userId,
+    });
+    if (insertErr) throw insertErr;
+
+    showToast('Banner berhasil ditambahkan ✓');
+    closeModal();
+    loadAdminBanner(document.getElementById('adminContent'));
+  } catch (err) {
+    console.warn('Gagal upload banner:', err);
+    showToast('Gagal menyimpan banner. Coba lagi.');
+    btn.disabled = false;
+    btn.querySelector('.btn-label').textContent = 'Simpan Banner';
+  }
+}
+
+async function toggleBannerActive(id, active) {
+  const { error } = await sb.from('banners').update({ is_active: active }).eq('id', id);
+  if (error) { showToast('Gagal mengubah status banner.'); return; }
+  loadAdminBanner(document.getElementById('adminContent'));
+}
+
+async function deleteBanner(id, path) {
+  if (!confirm('Hapus banner ini?')) return;
+  await sb.storage.from('banners').remove([path]);
+  const { error } = await sb.from('banners').delete().eq('id', id);
+  if (error) { showToast('Gagal menghapus banner.'); return; }
+  showToast('Banner dihapus.');
+  loadAdminBanner(document.getElementById('adminContent'));
+}
+
 document.getElementById('dashAdmin').addEventListener('click', (e) => {
   const tabBtn = e.target.closest('[data-admin-tab]');
   if (tabBtn) { switchAdminTab(tabBtn.dataset.adminTab); return; }
@@ -4371,6 +4548,20 @@ document.getElementById('dashAdmin').addEventListener('click', (e) => {
   if (resolveBtn) {
     const { id, action, orderId } = JSON.parse(resolveBtn.dataset.resolveDispute);
     resolveDispute(id, action, orderId);
+    return;
+  }
+
+  const toggleBannerBtn = e.target.closest('[data-toggle-banner]');
+  if (toggleBannerBtn) {
+    const { id, active } = JSON.parse(toggleBannerBtn.dataset.toggleBanner);
+    toggleBannerActive(id, active);
+    return;
+  }
+
+  const deleteBannerBtn = e.target.closest('[data-delete-banner]');
+  if (deleteBannerBtn) {
+    const { id, path } = JSON.parse(deleteBannerBtn.dataset.deleteBanner);
+    deleteBanner(id, path);
     return;
   }
 });
