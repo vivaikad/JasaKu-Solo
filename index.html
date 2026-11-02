@@ -402,6 +402,13 @@
   .remember-row label{display:flex; align-items:center; gap:7px; color:#4a5a4d;}
   .remember-row a{color:var(--green-600); text-decoration:none; font-weight:600;}
 
+  .terms-consent-row{margin-bottom:14px;}
+  .terms-consent-row label{
+    display:flex; align-items:flex-start; gap:8px; font-size:12px; line-height:1.45; color:#4a5a4d;
+  }
+  .terms-consent-row input[type="checkbox"]{margin-top:2px; flex:none; width:16px; height:16px; accent-color:var(--green-600);}
+  .terms-consent-row .terms-link{display:inline; font-size:12px; padding:0; vertical-align:baseline;}
+
   .btn-primary{
     width:100%;
     background:var(--green-600);
@@ -1379,13 +1386,25 @@
           <div class="field-error">Password minimal 6 karakter</div>
         </div>
 
+        <div class="terms-consent-row">
+          <label>
+            <input type="checkbox" id="regAgreeTerms">
+            Saya sudah membaca dan menyetujui <button type="button" class="terms-link" onclick="Router.go('/terms')">Syarat &amp; Ketentuan</button> JasaKu Solo.
+          </label>
+        </div>
+        <div class="terms-consent-row" id="providerConsentRow" style="display:none;">
+          <label>
+            <input type="checkbox" id="regAgreeProvider">
+            Saya memahami saya adalah <b>mitra independen</b> (bukan karyawan JasaKu) dan bertanggung jawab penuh atas kualitas &amp; hasil pekerjaan saya, sesuai poin 3 Syarat &amp; Ketentuan.
+          </label>
+        </div>
+
         <button type="submit" class="btn-primary" id="registerSubmitBtn">
           <span class="btn-label">Daftar</span>
         </button>
       </form>
 
       <p class="switch-line">Sudah punya akun? <a href="#/login">Login</a></p>
-      <p class="switch-line" style="margin-top:14px; font-size:11.5px;">Dengan mendaftar, kamu menyetujui <button class="terms-link" style="font-size:11.5px;" onclick="Router.go('/terms')">Syarat &amp; Ketentuan</button> JasaKu Solo.</p>
     </div>
   </section>
 
@@ -1666,6 +1685,9 @@ function showDashboard(role) {
 /* ============================================================
    SEEKER DASHBOARD — tab switching, content templates, toast
    ============================================================ */
+// Cocokkan dengan teks "Terakhir diperbarui" di halaman Syarat & Ketentuan
+const TERMS_VERSION = 'agustus-2026';
+
 const SEEKER_CATEGORIES = [
   { icon: '⚡', label: 'Listrik' },
   { icon: '🔧', label: 'Pipa & Saluran' },
@@ -4697,6 +4719,7 @@ document.getElementById('rolePicker').addEventListener('click', (e) => {
   document.querySelectorAll('#rolePicker .role-card').forEach((c) => c.classList.remove('selected'));
   card.classList.add('selected');
   selectedRole = card.dataset.role;
+  document.getElementById('providerConsentRow').style.display = selectedRole === 'provider' ? 'block' : 'none';
 });
 
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
@@ -4715,12 +4738,21 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   if (!password || password.length < 6) { setFieldError('regPasswordField', true); valid = false; } else setFieldError('regPasswordField', false);
   if (!valid) return;
 
+  if (!document.getElementById('regAgreeTerms').checked) {
+    showAlert('registerAlert', 'Kamu harus menyetujui Syarat & Ketentuan dulu sebelum mendaftar.');
+    return;
+  }
+  if (selectedRole === 'provider' && !document.getElementById('regAgreeProvider').checked) {
+    showAlert('registerAlert', 'Sebagai Penyedia Jasa, kamu harus menyetujui pernyataan mitra independen dulu sebelum mendaftar.');
+    return;
+  }
+
   setBtnLoading('registerSubmitBtn', true);
   const { data, error } = await sb.auth.signUp({
     email,
     password,
     options: {
-      data: { full_name: fullName, phone: phone, role: selectedRole }
+      data: { full_name: fullName, phone: phone, role: selectedRole, terms_version: TERMS_VERSION }
     }
   });
 
