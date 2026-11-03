@@ -4653,6 +4653,8 @@ function showAlert(alertId, message, type) {
   const el = document.getElementById(alertId);
   el.textContent = message;
   el.className = 'auth-alert show' + (type === 'success' ? ' success' : '');
+  // Form panjang di HP: pastikan pesan kelihatan walau tombol submit ada jauh di bawahnya
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 function hideAlert(alertId) {
   const el = document.getElementById(alertId);
